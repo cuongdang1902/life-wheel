@@ -89,8 +89,8 @@ export function formatDate(isoString) {
 
 // Period labels
 export const PERIODS = [
-  { value: 'week', label: 'Tuần' },
   { value: 'month', label: 'Tháng' },
+  { value: 'quarter', label: 'Quý' },
   { value: 'year', label: 'Năm' },
 ]
 

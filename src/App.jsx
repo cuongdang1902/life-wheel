@@ -3,8 +3,11 @@ import LifeWheel, { AREAS } from './components/LifeWheel'
 import SnapshotModal from './components/SnapshotModal'
 import SaveSnapshotModal from './components/SaveSnapshotModal'
 import ExportModal from './components/ExportModal'
+import GoalsModal from './components/GoalsModal'
+import GoalsDashboard from './components/GoalsDashboard'
 import ThemeToggle from './components/ThemeToggle'
 import useSnapshots from './hooks/useSnapshots'
+import useGoals from './hooks/useGoals'
 import { useTheme } from './context/ThemeContext'
 import './App.css'
 
@@ -17,6 +20,8 @@ function App() {
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showSnapshotsModal, setShowSnapshotsModal] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
+  const [showGoalsModal, setShowGoalsModal] = useState(false)
+  const [showDashboard, setShowDashboard] = useState(false)
   const [compareEnabled, setCompareEnabled] = useState(false)
   const [selectedSnapshotId, setSelectedSnapshotId] = useState(null)
   const [toast, setToast] = useState(null)
@@ -29,6 +34,8 @@ function App() {
     getLatestSnapshot,
     getSnapshotById,
   } = useSnapshots()
+
+  const goalsHook = useGoals()
 
   // Logic an toàn: nếu snapshot đang so sánh bị xóa, quay về snapshot gần nhất
   const comparisonScores = useCallback(() => {
@@ -237,6 +244,26 @@ function App() {
             🔄 So sánh
           </button>
           <button 
+            onClick={() => setShowGoalsModal(true)}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
+              isDark 
+                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+            }`}
+          >
+            🎯 Goals
+          </button>
+          <button 
+            onClick={() => setShowDashboard(true)}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
+              isDark 
+                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+            }`}
+          >
+            📊 Dashboard
+          </button>
+          <button 
             onClick={() => setShowExportModal(true)}
             className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
               isDark 
@@ -282,6 +309,22 @@ function App() {
         onClose={() => setShowExportModal(false)}
         scores={scores}
         isDark={isDark}
+      />
+
+      <GoalsModal
+        isOpen={showGoalsModal}
+        onClose={() => setShowGoalsModal(false)}
+        isDark={isDark}
+        {...goalsHook}
+      />
+
+      <GoalsDashboard
+        isOpen={showDashboard}
+        onClose={() => setShowDashboard(false)}
+        isDark={isDark}
+        getGoal={goalsHook.getGoal}
+        toggleTask={goalsHook.toggleTask}
+        getProgress={goalsHook.getProgress}
       />
 
       {/* Toast */}
