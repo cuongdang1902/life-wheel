@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { PERIODS } from '../hooks/useSnapshots'
 
 export default function SaveSnapshotModal({ isOpen, onClose, onSave, isDark = true }) {
-  const [selectedPeriod, setSelectedPeriod] = useState('week')
+  const [selectedPeriod, setSelectedPeriod] = useState('month')
 
   if (!isOpen) return null
 
@@ -54,8 +54,8 @@ export default function SaveSnapshotModal({ isOpen, onClose, onSave, isDark = tr
                   {period.label}
                 </div>
                 <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {period.value === 'week' && 'Đánh giá hàng tuần'}
                   {period.value === 'month' && 'Đánh giá hàng tháng'}
+                  {period.value === 'quarter' && 'Đánh giá hàng quý'}
                   {period.value === 'year' && 'Đánh giá hàng năm'}
                 </div>
               </div>
