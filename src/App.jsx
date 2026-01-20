@@ -3,10 +3,13 @@ import LifeWheel, { AREAS } from './components/LifeWheel'
 import SnapshotModal from './components/SnapshotModal'
 import SaveSnapshotModal from './components/SaveSnapshotModal'
 import ExportModal from './components/ExportModal'
+import ThemeToggle from './components/ThemeToggle'
 import useSnapshots from './hooks/useSnapshots'
+import { useTheme } from './context/ThemeContext'
 import './App.css'
 
 function App() {
+  const { isDark } = useTheme()
   const [scores, setScores] = useState(
     AREAS.reduce((acc, area) => ({ ...acc, [area.id]: 5 }), {})
   )
@@ -74,14 +77,24 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6">
+    <div className={`min-h-screen p-4 md:p-6 transition-colors duration-300 ${
+      isDark 
+        ? 'bg-slate-900 text-white' 
+        : 'bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 text-slate-900'
+    }`}>
+      <ThemeToggle />
+      
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="text-center mb-6 md:mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+          <h1 className={`text-3xl md:text-4xl font-bold bg-clip-text text-transparent ${
+            isDark 
+              ? 'bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'
+              : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'
+          }`}>
             🎡 Life Wheel
           </h1>
-          <p className="text-slate-400 mt-2 text-sm md:text-base">
+          <p className={`mt-2 text-sm md:text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             Đánh giá cân bằng cuộc sống của bạn
           </p>
         </header>
@@ -89,9 +102,11 @@ function App() {
         {/* Compare indicator */}
         {compareEnabled && (
           <div className="mb-4 text-center">
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-slate-700/50 rounded-full text-sm">
+            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
+              isDark ? 'bg-slate-700/50 text-slate-300' : 'bg-white/80 text-slate-700 shadow-sm'
+            }`}>
               <span className="w-3 h-3 rounded-full bg-slate-400" />
-              <span className="text-slate-300">
+              <span>
                 Đường nét đứt: {selectedSnapshotId ? 'Snapshot đã chọn' : 'Snapshot gần nhất'}
               </span>
               <button
@@ -107,16 +122,27 @@ function App() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-2 gap-6 md:gap-8 items-start">
           {/* Wheel */}
-          <div className="bg-slate-800/50 rounded-2xl p-4 md:p-6 flex items-center justify-center border border-slate-700 order-1 lg:order-1">
+          <div className={`rounded-2xl p-4 md:p-6 flex items-center justify-center border transition-colors ${
+            isDark 
+              ? 'bg-slate-800/50 border-slate-700' 
+              : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
+          }`}>
             <LifeWheel 
               scores={scores} 
               comparisonScores={comparisonScores()}
+              isDark={isDark}
             />
           </div>
 
           {/* Sliders */}
-          <div className="bg-slate-800/50 rounded-2xl p-4 md:p-6 border border-slate-700 order-2 lg:order-2">
-            <h2 className="text-lg md:text-xl font-semibold mb-4 md:mb-6 text-slate-200">
+          <div className={`rounded-2xl p-4 md:p-6 border transition-colors ${
+            isDark 
+              ? 'bg-slate-800/50 border-slate-700' 
+              : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
+          }`}>
+            <h2 className={`text-lg md:text-xl font-semibold mb-4 md:mb-6 ${
+              isDark ? 'text-slate-200' : 'text-slate-800'
+            }`}>
               📊 Điểm số các lĩnh vực
             </h2>
             <div className="space-y-4 md:space-y-5">
@@ -151,10 +177,10 @@ function App() {
                     onChange={(e) => handleScoreChange(area.id, e.target.value)}
                     className="w-full h-2 rounded-lg appearance-none cursor-pointer"
                     style={{
-                      background: `linear-gradient(to right, ${area.color} 0%, ${area.color} ${scores[area.id] * 10}%, #334155 ${scores[area.id] * 10}%, #334155 100%)`
+                      background: `linear-gradient(to right, ${area.color} 0%, ${area.color} ${scores[area.id] * 10}%, ${isDark ? '#334155' : '#e2e8f0'} ${scores[area.id] * 10}%, ${isDark ? '#334155' : '#e2e8f0'} 100%)`
                     }}
                   />
-                  <div className="flex justify-between text-xs text-slate-500">
+                  <div className={`flex justify-between text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                     <span>0</span>
                     <span>5</span>
                     <span>10</span>
@@ -164,9 +190,11 @@ function App() {
             </div>
 
             {/* Average score */}
-            <div className="mt-6 pt-4 border-t border-slate-700 text-center">
-              <div className="text-sm text-slate-400">Điểm trung bình</div>
-              <div className="text-3xl font-bold text-indigo-400">
+            <div className={`mt-6 pt-4 border-t text-center ${
+              isDark ? 'border-slate-700' : 'border-slate-200'
+            }`}>
+              <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Điểm trung bình</div>
+              <div className="text-3xl font-bold text-indigo-500">
                 {(Object.values(scores).reduce((a, b) => a + b, 0) / 8).toFixed(1)}
               </div>
             </div>
@@ -177,17 +205,21 @@ function App() {
         <div className="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4 justify-center">
           <button 
             onClick={() => setShowSaveModal(true)}
-            className="px-5 md:px-6 py-2.5 md:py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
+            className="px-5 md:px-6 py-2.5 md:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base shadow-lg shadow-indigo-500/25"
           >
             💾 Lưu Snapshot
           </button>
           <button 
             onClick={() => setShowSnapshotsModal(true)}
-            className="px-5 md:px-6 py-2.5 md:py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
+              isDark 
+                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+            }`}
           >
             📊 Snapshots
             {snapshots.length > 0 && (
-              <span className="bg-indigo-500 text-xs px-2 py-0.5 rounded-full">
+              <span className="bg-indigo-500 text-white text-xs px-2 py-0.5 rounded-full">
                 {snapshots.length}
               </span>
             )}
@@ -196,23 +228,31 @@ function App() {
             onClick={() => setCompareEnabled(!compareEnabled)}
             className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
               compareEnabled 
-                ? 'bg-purple-600 hover:bg-purple-700' 
-                : 'bg-slate-700 hover:bg-slate-600'
+                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/25' 
+                : isDark 
+                  ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                  : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
             }`}
           >
             🔄 So sánh
           </button>
           <button 
             onClick={() => setShowExportModal(true)}
-            className="px-5 md:px-6 py-2.5 md:py-3 bg-slate-700 hover:bg-slate-600 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base"
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
+              isDark 
+                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+            }`}
           >
             📥 Export
           </button>
         </div>
 
         {/* Footer */}
-        <footer className="text-center mt-10 md:mt-12 text-slate-500 text-xs md:text-sm">
-          <p>✅ Tất cả các bước đã hoàn thành!</p>
+        <footer className={`text-center mt-10 md:mt-12 text-xs md:text-sm ${
+          isDark ? 'text-slate-500' : 'text-slate-400'
+        }`}>
+          <p>🎡 Life Wheel - Đánh giá cân bằng cuộc sống</p>
         </footer>
       </div>
 
@@ -221,6 +261,7 @@ function App() {
         isOpen={showSaveModal}
         onClose={() => setShowSaveModal(false)}
         onSave={handleSaveSnapshot}
+        isDark={isDark}
       />
 
       <SnapshotModal
@@ -233,17 +274,23 @@ function App() {
         onSelectSnapshot={setSelectedSnapshotId}
         compareEnabled={compareEnabled}
         onToggleCompare={setCompareEnabled}
+        isDark={isDark}
       />
 
       <ExportModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         scores={scores}
+        isDark={isDark}
       />
 
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 bg-slate-700 rounded-xl shadow-lg border border-slate-600 text-white z-50 animate-pulse">
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg border z-50 animate-pulse ${
+          isDark 
+            ? 'bg-slate-700 border-slate-600 text-white' 
+            : 'bg-white border-slate-200 text-slate-800'
+        }`}>
           {toast}
         </div>
       )}

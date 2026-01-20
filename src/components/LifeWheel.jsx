@@ -16,7 +16,7 @@ const CENTER = SIZE / 2
 const MAX_RADIUS = 160
 const LABEL_RADIUS = MAX_RADIUS + 30
 
-export default function LifeWheel({ scores, comparisonScores = null }) {
+export default function LifeWheel({ scores, comparisonScores = null, isDark = true }) {
   const numAreas = AREAS.length
   const angleStep = (2 * Math.PI) / numAreas
 
@@ -72,13 +72,21 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
     }
   })
 
+  // Theme colors
+  const bgGradientStart = isDark ? '#1e293b' : '#f8fafc'
+  const bgGradientEnd = isDark ? '#0f172a' : '#e2e8f0'
+  const gridColor = isDark ? '#334155' : '#cbd5e1'
+  const axisColor = isDark ? '#475569' : '#94a3b8'
+  const textColor = isDark ? 'white' : '#1e293b'
+  const mutedTextColor = isDark ? '#94a3b8' : '#64748b'
+
   return (
     <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="drop-shadow-2xl">
       {/* Background gradient */}
       <defs>
         <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#1e293b" />
-          <stop offset="100%" stopColor="#0f172a" />
+          <stop offset="0%" stopColor={bgGradientStart} />
+          <stop offset="100%" stopColor={bgGradientEnd} />
         </radialGradient>
         <filter id="glow">
           <feGaussianBlur stdDeviation="3" result="coloredBlur" />
@@ -100,7 +108,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
           cy={CENTER}
           r={(level / 10) * MAX_RADIUS}
           fill="none"
-          stroke="#334155"
+          stroke={gridColor}
           strokeWidth="1"
           strokeDasharray={level === 10 ? "none" : "4,4"}
           opacity={0.5}
@@ -115,7 +123,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
           y1={CENTER}
           x2={line.x2}
           y2={line.y2}
-          stroke="#475569"
+          stroke={axisColor}
           strokeWidth="1"
           opacity={0.6}
         />
@@ -142,7 +150,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
             key={area.id}
             d={pathD}
             fill={area.color}
-            opacity={0.3}
+            opacity={isDark ? 0.3 : 0.4}
           />
         )
       })}
@@ -152,7 +160,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
         <path
           d={comparisonPath}
           fill="none"
-          stroke="#94a3b8"
+          stroke={isDark ? '#94a3b8' : '#64748b'}
           strokeWidth="2"
           strokeDasharray="8,4"
           opacity={0.8}
@@ -162,7 +170,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
       {/* Current polygon (main) */}
       <path
         d={currentPath}
-        fill="rgba(99, 102, 241, 0.15)"
+        fill={isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.2)'}
         stroke="#6366f1"
         strokeWidth="3"
         filter="url(#glow)"
@@ -226,7 +234,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
         y={CENTER}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="white"
+        fill={textColor}
         fontSize="24"
         fontWeight="bold"
       >
@@ -237,7 +245,7 @@ export default function LifeWheel({ scores, comparisonScores = null }) {
         y={CENTER + 18}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="#94a3b8"
+        fill={mutedTextColor}
         fontSize="10"
       >
         Điểm TB
