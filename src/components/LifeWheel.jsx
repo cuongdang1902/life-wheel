@@ -4,17 +4,17 @@ const AREAS = [
   { id: 'health', name: 'Sức khỏe', color: '#22c55e' },
   { id: 'career', name: 'Sự nghiệp', color: '#3b82f6' },
   { id: 'finance', name: 'Tài chính', color: '#eab308' },
-  { id: 'family', name: 'Gia đình', color: '#ec4899' },
-  { id: 'growth', name: 'Phát triển', color: '#8b5cf6' },
+  { id: 'family', name: 'Gia đình & Quan hệ', color: '#ec4899' },
+  { id: 'growth', name: 'Phát triển bản thân', color: '#8b5cf6' },
   { id: 'recreation', name: 'Giải trí', color: '#f97316' },
   { id: 'spiritual', name: 'Tâm linh', color: '#06b6d4' },
-  { id: 'contribution', name: 'Đóng góp', color: '#14b8a6' },
+  { id: 'contribution', name: 'Đóng góp xã hội', color: '#14b8a6' },
 ]
 
-const SIZE = 400
+const SIZE = 560
 const CENTER = SIZE / 2
-const MAX_RADIUS = 160
-const LABEL_RADIUS = MAX_RADIUS + 30
+const MAX_RADIUS = 150
+const LABEL_RADIUS = MAX_RADIUS + 50
 
 export default function LifeWheel({ scores, comparisonScores = null, isDark = true }) {
   const numAreas = AREAS.length
@@ -35,9 +35,17 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
   // Tọa độ label (nằm trên trục phân chia)
   const getLabelPoint = (index) => {
     const angle = index * angleStep - Math.PI / 2
+    const angleDeg = (angle * 180) / Math.PI
+    
+    // Thêm padding cho các label ở bên trái/phải để không bị cắt
+    let extraRadius = 0
+    if (Math.abs(angleDeg) > 60 && Math.abs(angleDeg) < 120) {
+      extraRadius = 15 // Thêm khoảng cách cho label bên trái/phải
+    }
+    
     return {
-      x: CENTER + LABEL_RADIUS * Math.cos(angle),
-      y: CENTER + LABEL_RADIUS * Math.sin(angle),
+      x: CENTER + (LABEL_RADIUS + extraRadius) * Math.cos(angle),
+      y: CENTER + (LABEL_RADIUS + extraRadius) * Math.sin(angle),
     }
   }
 
@@ -81,20 +89,13 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
   const mutedTextColor = isDark ? '#94a3b8' : '#64748b'
 
   return (
-    <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} className="drop-shadow-2xl">
+    <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} style={{ overflow: 'visible' }}>
       {/* Background gradient */}
       <defs>
         <radialGradient id="bgGradient" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor={bgGradientStart} />
           <stop offset="100%" stopColor={bgGradientEnd} />
         </radialGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-          <feMerge>
-            <feMergeNode in="coloredBlur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
       </defs>
 
       {/* Background circle */}
@@ -150,7 +151,7 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
             key={area.id}
             d={pathD}
             fill={area.color}
-            opacity={isDark ? 0.3 : 0.4}
+            opacity={isDark ? 0.5 : 0.6}
           />
         )
       })}
@@ -173,7 +174,6 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
         fill={isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.2)'}
         stroke="#6366f1"
         strokeWidth="3"
-        filter="url(#glow)"
       />
 
       {/* Dots at vertices */}
@@ -188,7 +188,6 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
               fill={area.color}
               stroke="white"
               strokeWidth="2"
-              className="drop-shadow-lg"
             />
             <circle
               cx={point.x}
@@ -211,6 +210,18 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
         if (angleDeg > -80 && angleDeg < 80) textAnchor = 'start'
         if (angleDeg > 100 || angleDeg < -100) textAnchor = 'end'
         
+        // Tách text thành nhiều dòng nếu có khoảng trắng
+        const words = area.name.split(' ')
+        const lines = []
+        if (words.length <= 2) {
+          lines.push(area.name)
+        } else {
+          // Chia thành 2 dòng
+          const mid = Math.ceil(words.length / 2)
+          lines.push(words.slice(0, mid).join(' '))
+          lines.push(words.slice(mid).join(' '))
+        }
+        
         return (
           <text
             key={`label-${area.id}`}
@@ -219,11 +230,19 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
             textAnchor={textAnchor}
             dominantBaseline="middle"
             fill={area.color}
-            fontSize="11"
+            fontSize="20"
             fontWeight="600"
             className="select-none"
           >
-            {area.name}
+            {lines.map((line, lineIndex) => (
+              <tspan
+                key={lineIndex}
+                x={labelPos.x}
+                dy={lineIndex === 0 ? (lines.length > 1 ? -12 : 0) : 24}
+              >
+                {line}
+              </tspan>
+            ))}
           </text>
         )
       })}

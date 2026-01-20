@@ -120,9 +120,9 @@ function App() {
         )}
 
         {/* Main Content */}
-        <div className="grid lg:grid-cols-2 gap-6 md:gap-8 items-start">
+        <div className="grid lg:grid-cols-3 gap-6 md:gap-8 items-start">
           {/* Wheel */}
-          <div className={`rounded-2xl p-4 md:p-6 flex items-center justify-center border transition-colors ${
+          <div className={`lg:col-span-2 rounded-2xl p-4 md:p-6 flex items-center justify-center border transition-colors ${
             isDark 
               ? 'bg-slate-800/50 border-slate-700' 
               : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
