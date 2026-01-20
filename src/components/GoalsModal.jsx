@@ -36,22 +36,24 @@ export default function GoalsModal({
     setEditingObjective(true)
   }
 
-  const handleSaveObjective = () => {
-    updateObjective(selectedPeriod, selectedArea, objectiveInput)
+  const handleSaveObjective = async () => {
+    await updateObjective(selectedPeriod, selectedArea, objectiveInput)
     setEditingObjective(false)
   }
 
-  const handleAddSubGoal = () => {
+  const handleAddSubGoal = async () => {
     if (!newSubGoalTitle.trim()) return
-    if (addSubGoal(selectedPeriod, selectedArea, newSubGoalTitle.trim())) {
+    const success = await addSubGoal(selectedPeriod, selectedArea, newSubGoalTitle.trim())
+    if (success) {
       setNewSubGoalTitle('')
     }
   }
 
-  const handleAddTask = (subGoalId) => {
+  const handleAddTask = async (subGoalId) => {
     const text = newTaskTexts[subGoalId]
     if (!text?.trim()) return
-    if (addTask(selectedPeriod, selectedArea, subGoalId, text.trim())) {
+    const success = await addTask(selectedPeriod, selectedArea, subGoalId, text.trim())
+    if (success) {
       setNewTaskTexts(prev => ({ ...prev, [subGoalId]: '' }))
     }
   }

@@ -33,6 +33,8 @@ export default function HomePage() {
 
   const {
     snapshots,
+    loading: snapshotsLoading,
+    error: snapshotsError,
     addSnapshot,
     deleteSnapshot,
     deleteByPeriod,
@@ -41,6 +43,7 @@ export default function HomePage() {
   } = useSnapshots()
 
   const goalsHook = useGoals()
+  const { loading: goalsLoading, error: goalsError } = goalsHook
 
   const comparisonScores = useCallback(() => {
     if (!compareEnabled) return null
@@ -62,19 +65,31 @@ export default function HomePage() {
     setScores(prev => ({ ...prev, [areaId]: Number(value) }))
   }
 
-  const handleSaveSnapshot = (period) => {
-    addSnapshot(scores, period)
-    showToast('✅ Đã lưu snapshot thành công!')
+  const handleSaveSnapshot = async (period) => {
+    const result = await addSnapshot(scores, period)
+    if (result) {
+      showToast('✅ Đã lưu snapshot thành công!')
+    } else {
+      showToast('❌ Lỗi khi lưu snapshot')
+    }
   }
 
-  const handleDeleteSnapshot = (id) => {
-    deleteSnapshot(id)
-    showToast('🗑️ Đã xóa snapshot')
+  const handleDeleteSnapshot = async (id) => {
+    const success = await deleteSnapshot(id)
+    if (success) {
+      showToast('🗑️ Đã xóa snapshot')
+    } else {
+      showToast('❌ Lỗi khi xóa snapshot')
+    }
   }
 
-  const handleDeleteByPeriod = (period) => {
-    deleteByPeriod(period)
-    showToast(`🗑️ Đã xóa tất cả snapshot (${period})`)
+  const handleDeleteByPeriod = async (period) => {
+    const success = await deleteByPeriod(period)
+    if (success) {
+      showToast(`🗑️ Đã xóa tất cả snapshot (${period})`)
+    } else {
+      showToast('❌ Lỗi khi xóa snapshots')
+    }
   }
 
   const showToast = (message) => {
