@@ -3,27 +3,27 @@ import { useMemo } from 'react'
 const AREAS = [
   { id: 'health', name: 'Sức khỏe', color: '#22c55e' },
   { id: 'career', name: 'Sự nghiệp', color: '#3b82f6' },
-  { id: 'finance', name: 'Tài chính', color: '#eab308' },
-  { id: 'family', name: 'Gia đình & Quan hệ', color: '#ec4899' },
-  { id: 'growth', name: 'Phát triển bản thân', color: '#8b5cf6' },
+  { id: 'finance', name: 'Tài chính', color: '#ec4899' },
+  { id: 'family', name: 'Gia đình & Quan hệ', color: '#eab308' },
+  { id: 'growth', name: 'Phát triển bản thân', color: '#832178' },
   { id: 'recreation', name: 'Giải trí', color: '#f97316' },
   { id: 'spiritual', name: 'Tâm linh', color: '#06b6d4' },
-  { id: 'contribution', name: 'Đóng góp xã hội', color: '#14b8a6' },
+  { id: 'contribution', name: 'Đóng góp xã hội', color: '#8b6c5c' },
 ]
 
 const SIZE = 560
 const CENTER = SIZE / 2
 const MAX_RADIUS = 150
-const LABEL_RADIUS = MAX_RADIUS + 50
+const LABEL_RADIUS = MAX_RADIUS + 33 // Giảm từ 50 xuống 33 (giảm 1/3)
 
 export default function LifeWheel({ scores, comparisonScores = null, isDark = true }) {
   const numAreas = AREAS.length
   const angleStep = (2 * Math.PI) / numAreas
 
   // Tính tọa độ điểm trên wheel
-  // Mỗi lĩnh vực nằm GIỮA 2 trục, nên đỉnh nằm giữa cánh
+  // Điểm nằm ở giữa cánh cung (sector)
   const getPoint = (index, score) => {
-    // Góc ở GIỮA sector (không phải trên trục)
+    // Góc ở giữa sector (không phải trên trục)
     const angle = index * angleStep + angleStep / 2 - Math.PI / 2
     const radius = (score / 10) * MAX_RADIUS
     return {
@@ -32,9 +32,10 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
     }
   }
 
-  // Tọa độ label (nằm trên trục phân chia)
+  // Tọa độ label (nằm ở giữa cánh cung/sector)
   const getLabelPoint = (index) => {
-    const angle = index * angleStep - Math.PI / 2
+    // Góc ở giữa sector (không phải trên trục)
+    const angle = index * angleStep + angleStep / 2 - Math.PI / 2
     const angleDeg = (angle * 180) / Math.PI
     
     // Thêm padding cho các label ở bên trái/phải để không bị cắt
@@ -176,7 +177,7 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
         strokeWidth="3"
       />
 
-      {/* Dots at vertices */}
+      {/* Dots at vertices - positioned on sector center */}
       {AREAS.map((area, i) => {
         const point = getPoint(i, scores[area.id] || 0)
         return (
@@ -202,7 +203,8 @@ export default function LifeWheel({ scores, comparisonScores = null, isDark = tr
       {/* Labels */}
       {AREAS.map((area, i) => {
         const labelPos = getLabelPoint(i)
-        const angle = i * angleStep - Math.PI / 2
+        // Góc ở giữa sector (để tính text anchor)
+        const angle = i * angleStep + angleStep / 2 - Math.PI / 2
         const angleDeg = (angle * 180) / Math.PI
         
         // Điều chỉnh anchor dựa trên vị trí

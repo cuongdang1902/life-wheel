@@ -7,10 +7,11 @@ function ExportWheel({ scores, isDark }) {
   const SIZE = 300
   const CENTER = SIZE / 2
   const MAX_RADIUS = 100
-  const LABEL_RADIUS = MAX_RADIUS + 35
+  const LABEL_RADIUS = MAX_RADIUS + 22 // Giảm 1/3 từ 33 (tỷ lệ với LifeWheel)
   const numAreas = AREAS.length
   const angleStep = (2 * Math.PI) / numAreas
 
+  // Điểm ở giữa cánh cung (cho dots)
   const getPoint = (index, score) => {
     const angle = index * angleStep + angleStep / 2 - Math.PI / 2
     const radius = (score / 10) * MAX_RADIUS
@@ -20,18 +21,19 @@ function ExportWheel({ scores, isDark }) {
     }
   }
 
+  // Label ở giữa cánh cung (sector)
   const getLabelPoint = (index) => {
-    const angle = index * angleStep - Math.PI / 2
+    const angle = index * angleStep + angleStep / 2 - Math.PI / 2
     return {
       x: CENTER + LABEL_RADIUS * Math.cos(angle),
       y: CENTER + LABEL_RADIUS * Math.sin(angle),
     }
   }
 
-  const currentPath = AREAS.map((area, i) => {
+  const currentPath = 'M ' + AREAS.map((area, i) => {
     const point = getPoint(i, scores[area.id] || 0)
     return `${point.x},${point.y}`
-  }).join(' L ')
+  }).join(' L ') + ' Z'
 
   const circles = [2, 4, 6, 8, 10]
   const axisLines = AREAS.map((_, i) => {
@@ -100,7 +102,7 @@ function ExportWheel({ scores, isDark }) {
       })}
 
       <path
-        d={`M ${currentPath} Z`}
+        d={currentPath}
         fill={isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.2)'}
         stroke="#6366f1"
         strokeWidth="2"
@@ -109,21 +111,29 @@ function ExportWheel({ scores, isDark }) {
       {AREAS.map((area, i) => {
         const point = getPoint(i, scores[area.id] || 0)
         return (
-          <circle
-            key={`dot-${area.id}`}
-            cx={point.x}
-            cy={point.y}
-            r="5"
-            fill={area.color}
-            stroke="white"
-            strokeWidth="2"
-          />
+          <g key={`dot-${area.id}`}>
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="5"
+              fill={area.color}
+              stroke="white"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx={point.x}
+              cy={point.y}
+              r="2"
+              fill="white"
+            />
+          </g>
         )
       })}
 
       {AREAS.map((area, i) => {
         const labelPos = getLabelPoint(i)
-        const angle = i * angleStep - Math.PI / 2
+        // Góc ở giữa sector (để tính text anchor)
+        const angle = i * angleStep + angleStep / 2 - Math.PI / 2
         const angleDeg = (angle * 180) / Math.PI
         let textAnchor = 'middle'
         if (angleDeg > -80 && angleDeg < 80) textAnchor = 'start'
@@ -136,7 +146,7 @@ function ExportWheel({ scores, isDark }) {
             textAnchor={textAnchor}
             dominantBaseline="middle"
             fill={area.color}
-            fontSize="10"
+            fontSize="15"
             fontWeight="600"
           >
             {area.name.split(' ').slice(0, 2).join(' ')}
@@ -224,10 +234,10 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
           >
             {/* Export header */}
             <div className="text-center mb-2">
-              <h3 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <h3 className={`font-bold ${isDark ? 'text-white' : 'text-slate-800'}`} style={{ fontSize: '23px' }}>
                 🎡 Life Wheel
               </h3>
-              <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{today}</p>
+              <p className={isDark ? 'text-slate-400' : 'text-slate-500'} style={{ fontSize: '14px' }}>{today}</p>
             </div>
 
             {/* Wheel */}
