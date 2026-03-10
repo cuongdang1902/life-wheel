@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatDate, getPeriodLabel, PERIODS } from '../hooks/useSnapshots'
+import { formatDate, getPeriodLabel, PERIODS } from './useSnapshots'
 
 export default function SnapshotModal({
   isOpen,
@@ -44,34 +44,30 @@ export default function SnapshotModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border shadow-2xl ${
-        isDark 
-          ? 'bg-slate-800 border-slate-700' 
+      <div className={`rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border shadow-2xl ${isDark
+          ? 'bg-slate-800 border-slate-700'
           : 'bg-white border-slate-200'
-      }`}>
-        {/* Header */}
-        <div className={`p-6 border-b flex justify-between items-center ${
-          isDark ? 'border-slate-700' : 'border-slate-200'
         }`}>
+        {/* Header */}
+        <div className={`p-6 border-b flex justify-between items-center ${isDark ? 'border-slate-700' : 'border-slate-200'
+          }`}>
           <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
             📊 Snapshots
           </h2>
           <button
             onClick={onClose}
-            className={`text-2xl leading-none ${
-              isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
-            }`}
+            className={`text-2xl leading-none ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
+              }`}
           >
             ×
           </button>
         </div>
 
         {/* Compare toggle */}
-        <div className={`px-6 py-4 border-b ${
-          isDark 
-            ? 'bg-slate-700/30 border-slate-700' 
+        <div className={`px-6 py-4 border-b ${isDark
+            ? 'bg-slate-700/30 border-slate-700'
             : 'bg-slate-50 border-slate-200'
-        }`}>
+          }`}>
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -119,11 +115,10 @@ export default function SnapshotModal({
                         </button>
                         <button
                           onClick={() => setConfirmDeletePeriod(null)}
-                          className={`px-3 py-1 rounded-lg text-sm ${
-                            isDark 
-                              ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+                          className={`px-3 py-1 rounded-lg text-sm ${isDark
+                              ? 'bg-slate-600 hover:bg-slate-500 text-white'
                               : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                          }`}
+                            }`}
                         >
                           Hủy
                         </button>
@@ -137,18 +132,17 @@ export default function SnapshotModal({
                       </button>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     {group.items.map(snapshot => (
                       <div
                         key={snapshot.id}
-                        className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                          selectedSnapshotId === snapshot.id
+                        className={`p-4 rounded-xl border transition-all cursor-pointer ${selectedSnapshotId === snapshot.id
                             ? 'bg-indigo-600/20 border-indigo-500'
-                            : isDark 
+                            : isDark
                               ? 'bg-slate-700/50 border-slate-600 hover:border-slate-500'
                               : 'bg-slate-50 border-slate-200 hover:border-slate-300'
-                        }`}
+                          }`}
                         onClick={() => onSelectSnapshot(
                           selectedSnapshotId === snapshot.id ? null : snapshot.id
                         )}
@@ -164,7 +158,7 @@ export default function SnapshotModal({
                               ).toFixed(1)}
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             {selectedSnapshotId === snapshot.id && (
                               <span className="px-2 py-1 bg-indigo-500 text-white rounded text-xs">
@@ -187,11 +181,10 @@ export default function SnapshotModal({
                                     e.stopPropagation()
                                     setConfirmDelete(null)
                                   }}
-                                  className={`px-2 py-1 rounded text-xs ${
-                                    isDark 
-                                      ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+                                  className={`px-2 py-1 rounded text-xs ${isDark
+                                      ? 'bg-slate-600 hover:bg-slate-500 text-white'
                                       : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                                  }`}
+                                    }`}
                                 >
                                   Hủy
                                 </button>
@@ -209,17 +202,16 @@ export default function SnapshotModal({
                             )}
                           </div>
                         </div>
-                        
+
                         {/* Mini scores preview */}
                         <div className="flex gap-1 mt-3 flex-wrap">
                           {Object.entries(snapshot.scores).map(([key, value]) => (
                             <span
                               key={key}
-                              className={`px-2 py-0.5 rounded text-xs ${
-                                isDark 
-                                  ? 'bg-slate-600/50 text-slate-300' 
+                              className={`px-2 py-0.5 rounded text-xs ${isDark
+                                  ? 'bg-slate-600/50 text-slate-300'
                                   : 'bg-slate-200 text-slate-600'
-                              }`}
+                                }`}
                             >
                               {value}
                             </span>
@@ -238,11 +230,10 @@ export default function SnapshotModal({
         <div className={`p-4 border-t text-center ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
           <button
             onClick={onClose}
-            className={`px-6 py-2 rounded-xl font-medium transition-colors ${
-              isDark 
-                ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+            className={`px-6 py-2 rounded-xl font-medium transition-colors ${isDark
+                ? 'bg-slate-600 hover:bg-slate-500 text-white'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }`}
+              }`}
           >
             Đóng
           </button>

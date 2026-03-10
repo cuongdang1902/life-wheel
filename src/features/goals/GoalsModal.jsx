@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { AREAS } from './LifeWheel'
-import { PERIODS } from '../hooks/useSnapshots'
+import { AREAS } from '../wheel/LifeWheel'
+import { PERIODS } from '../snapshots/useSnapshots'
 
 export default function GoalsModal({
   isOpen,
@@ -58,15 +58,13 @@ export default function GoalsModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border shadow-2xl ${
-        isDark 
-          ? 'bg-slate-800 border-slate-700' 
+      <div className={`rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border shadow-2xl ${isDark
+          ? 'bg-slate-800 border-slate-700'
           : 'bg-white border-slate-200'
-      }`}>
-        {/* Header */}
-        <div className={`p-6 border-b flex justify-between items-center ${
-          isDark ? 'border-slate-700' : 'border-slate-200'
         }`}>
+        {/* Header */}
+        <div className={`p-6 border-b flex justify-between items-center ${isDark ? 'border-slate-700' : 'border-slate-200'
+          }`}>
           <div>
             <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
               🎯 Goals (OKR)
@@ -77,31 +75,28 @@ export default function GoalsModal({
           </div>
           <button
             onClick={onClose}
-            className={`text-2xl leading-none ${
-              isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
-            }`}
+            className={`text-2xl leading-none ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-400 hover:text-slate-700'
+              }`}
           >
             ×
           </button>
         </div>
 
         {/* Selectors */}
-        <div className={`px-6 py-4 border-b flex flex-wrap gap-4 ${
-          isDark ? 'bg-slate-700/30 border-slate-700' : 'bg-slate-50 border-slate-200'
-        }`}>
+        <div className={`px-6 py-4 border-b flex flex-wrap gap-4 ${isDark ? 'bg-slate-700/30 border-slate-700' : 'bg-slate-50 border-slate-200'
+          }`}>
           {/* Period selector */}
           <div className="flex gap-2">
             {PERIODS.map(period => (
               <button
                 key={period.value}
                 onClick={() => setSelectedPeriod(period.value)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedPeriod === period.value
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedPeriod === period.value
                     ? 'bg-indigo-600 text-white'
-                    : isDark 
+                    : isDark
                       ? 'bg-slate-600 text-slate-300 hover:bg-slate-500'
                       : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                }`}
+                  }`}
               >
                 {period.label}
               </button>
@@ -112,11 +107,10 @@ export default function GoalsModal({
           <select
             value={selectedArea}
             onChange={(e) => setSelectedArea(e.target.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${
-              isDark 
-                ? 'bg-slate-600 text-white border-slate-500' 
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${isDark
+                ? 'bg-slate-600 text-white border-slate-500'
                 : 'bg-white text-slate-700 border-slate-200'
-            } border`}
+              } border`}
             style={{ color: currentArea?.color }}
           >
             {AREAS.map(area => (
@@ -130,7 +124,7 @@ export default function GoalsModal({
           {progress > 0 && (
             <div className="flex items-center gap-2 ml-auto">
               <div className={`w-24 h-2 rounded-full ${isDark ? 'bg-slate-600' : 'bg-slate-200'}`}>
-                <div 
+                <div
                   className="h-full rounded-full bg-green-500 transition-all"
                   style={{ width: `${progress}%` }}
                 />
@@ -145,19 +139,18 @@ export default function GoalsModal({
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[55vh] space-y-6">
           {/* Objective */}
-          <div className={`p-4 rounded-xl border ${
-            isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-200'
-          }`}>
+          <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-200'
+            }`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
                 🎯 Objective (Mục tiêu chính)
               </h3>
-              <span 
+              <span
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: currentArea?.color }}
               />
             </div>
-            
+
             {editingObjective ? (
               <div className="flex gap-2">
                 <input
@@ -165,11 +158,10 @@ export default function GoalsModal({
                   value={objectiveInput}
                   onChange={(e) => setObjectiveInput(e.target.value)}
                   placeholder="Nhập mục tiêu chính..."
-                  className={`flex-1 px-4 py-2 rounded-lg border ${
-                    isDark 
-                      ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' 
+                  className={`flex-1 px-4 py-2 rounded-lg border ${isDark
+                      ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400'
                       : 'bg-white border-slate-300 text-slate-800 placeholder-slate-400'
-                  }`}
+                    }`}
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveObjective()}
                 />
@@ -181,9 +173,8 @@ export default function GoalsModal({
                 </button>
                 <button
                   onClick={() => setEditingObjective(false)}
-                  className={`px-4 py-2 rounded-lg ${
-                    isDark ? 'bg-slate-600 hover:bg-slate-500' : 'bg-slate-200 hover:bg-slate-300'
-                  }`}
+                  className={`px-4 py-2 rounded-lg ${isDark ? 'bg-slate-600 hover:bg-slate-500' : 'bg-slate-200 hover:bg-slate-300'
+                    }`}
                 >
                   ✕
                 </button>
@@ -191,11 +182,10 @@ export default function GoalsModal({
             ) : (
               <div
                 onClick={handleStartEditObjective}
-                className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${
-                  currentGoal.objective 
+                className={`px-4 py-3 rounded-lg cursor-pointer transition-colors ${currentGoal.objective
                     ? isDark ? 'bg-slate-600/50' : 'bg-white'
                     : isDark ? 'bg-slate-600/30 border-2 border-dashed border-slate-500' : 'bg-white/50 border-2 border-dashed border-slate-300'
-                }`}
+                  }`}
               >
                 {currentGoal.objective ? (
                   <p className={`text-lg ${isDark ? 'text-white' : 'text-slate-800'}`}>
@@ -214,7 +204,7 @@ export default function GoalsModal({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                📋 Sub-goals (Mục tiêu con) 
+                📋 Sub-goals (Mục tiêu con)
                 <span className={`text-sm font-normal ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {currentGoal.subGoals.length}/3
                 </span>
@@ -223,26 +213,23 @@ export default function GoalsModal({
 
             <div className="space-y-4">
               {currentGoal.subGoals.map((subGoal, index) => (
-                <div 
+                <div
                   key={subGoal.id}
-                  className={`p-4 rounded-xl border ${
-                    isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-white border-slate-200'
-                  }`}
+                  className={`p-4 rounded-xl border ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-white border-slate-200'
+                    }`}
                 >
                   {/* Sub-goal header */}
                   <div className="flex items-center gap-3 mb-3">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
-                      isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'
-                    }`}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'
+                      }`}>
                       {index + 1}
                     </span>
                     <input
                       type="text"
                       value={subGoal.title}
                       onChange={(e) => updateSubGoal(selectedPeriod, selectedArea, subGoal.id, e.target.value)}
-                      className={`flex-1 px-3 py-1 rounded-lg border-none bg-transparent font-medium ${
-                        isDark ? 'text-white' : 'text-slate-800'
-                      }`}
+                      className={`flex-1 px-3 py-1 rounded-lg border-none bg-transparent font-medium ${isDark ? 'text-white' : 'text-slate-800'
+                        }`}
                       placeholder="Tên mục tiêu con..."
                     />
                     <button
@@ -267,11 +254,10 @@ export default function GoalsModal({
                           type="text"
                           value={task.text}
                           onChange={(e) => updateTask(selectedPeriod, selectedArea, subGoal.id, task.id, { text: e.target.value })}
-                          className={`flex-1 px-2 py-1 rounded bg-transparent ${
-                            task.done 
-                              ? 'line-through opacity-50' 
+                          className={`flex-1 px-2 py-1 rounded bg-transparent ${task.done
+                              ? 'line-through opacity-50'
                               : ''
-                          } ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
+                            } ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
                         />
                         <button
                           onClick={() => deleteTask(selectedPeriod, selectedArea, subGoal.id, task.id)}
@@ -290,20 +276,18 @@ export default function GoalsModal({
                           value={newTaskTexts[subGoal.id] || ''}
                           onChange={(e) => setNewTaskTexts(prev => ({ ...prev, [subGoal.id]: e.target.value }))}
                           placeholder="+ Thêm task..."
-                          className={`flex-1 px-3 py-1 rounded-lg text-sm ${
-                            isDark 
-                              ? 'bg-slate-600/50 text-white placeholder-slate-400' 
+                          className={`flex-1 px-3 py-1 rounded-lg text-sm ${isDark
+                              ? 'bg-slate-600/50 text-white placeholder-slate-400'
                               : 'bg-slate-100 text-slate-700 placeholder-slate-400'
-                          }`}
+                            }`}
                           onKeyDown={(e) => e.key === 'Enter' && handleAddTask(subGoal.id)}
                         />
                         <button
                           onClick={() => handleAddTask(subGoal.id)}
-                          className={`px-3 py-1 rounded-lg text-sm ${
-                            isDark 
-                              ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+                          className={`px-3 py-1 rounded-lg text-sm ${isDark
+                              ? 'bg-slate-600 hover:bg-slate-500 text-white'
                               : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-                          }`}
+                            }`}
                         >
                           +
                         </button>
@@ -326,11 +310,10 @@ export default function GoalsModal({
                     value={newSubGoalTitle}
                     onChange={(e) => setNewSubGoalTitle(e.target.value)}
                     placeholder="+ Thêm mục tiêu con..."
-                    className={`flex-1 px-4 py-3 rounded-xl border ${
-                      isDark 
-                        ? 'bg-slate-700/30 border-slate-600 text-white placeholder-slate-400' 
+                    className={`flex-1 px-4 py-3 rounded-xl border ${isDark
+                        ? 'bg-slate-700/30 border-slate-600 text-white placeholder-slate-400'
                         : 'bg-slate-50 border-slate-200 text-slate-700 placeholder-slate-400'
-                    }`}
+                      }`}
                     onKeyDown={(e) => e.key === 'Enter' && handleAddSubGoal()}
                   />
                   <button
@@ -354,11 +337,10 @@ export default function GoalsModal({
         <div className={`p-4 border-t text-center ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
           <button
             onClick={onClose}
-            className={`px-6 py-2 rounded-xl font-medium transition-colors ${
-              isDark 
-                ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+            className={`px-6 py-2 rounded-xl font-medium transition-colors ${isDark
+                ? 'bg-slate-600 hover:bg-slate-500 text-white'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }`}
+              }`}
           >
             Đóng
           </button>

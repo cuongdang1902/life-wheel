@@ -1,14 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
-import LifeWheel, { AREAS } from './components/LifeWheel'
-import SnapshotModal from './components/SnapshotModal'
-import SaveSnapshotModal from './components/SaveSnapshotModal'
-import ExportModal from './components/ExportModal'
-import GoalsModal from './components/GoalsModal'
-import GoalsDashboard from './components/GoalsDashboard'
-import ThemeToggle from './components/ThemeToggle'
-import useSnapshots from './hooks/useSnapshots'
-import useGoals from './hooks/useGoals'
-import { useTheme } from './context/ThemeContext'
+import LifeWheel, { AREAS } from './features/wheel/LifeWheel'
+import SnapshotModal from './features/snapshots/SnapshotModal'
+import SaveSnapshotModal from './features/snapshots/SaveSnapshotModal'
+import ExportModal from './features/wheel/ExportModal'
+import GoalsModal from './features/goals/GoalsModal'
+import GoalsDashboard from './features/goals/GoalsDashboard'
+import AuthModal from './features/auth/AuthModal'
+import ThemeToggle from './features/theme/ThemeToggle'
+import useSnapshots from './features/snapshots/useSnapshots'
+import useGoals from './features/goals/useGoals'
+import { useTheme } from './features/theme/ThemeContext'
+import { useAuth } from './features/auth/AuthContext'
 import './App.css'
 
 function App() {
@@ -16,15 +18,19 @@ function App() {
   const [scores, setScores] = useState(
     AREAS.reduce((acc, area) => ({ ...acc, [area.id]: 5 }), {})
   )
-  
+
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [showSnapshotsModal, setShowSnapshotsModal] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const [showGoalsModal, setShowGoalsModal] = useState(false)
   const [showDashboard, setShowDashboard] = useState(false)
+
+  // Trích xuất user từ AuthContext
+  const { user, signOut } = useAuth()
   const [compareEnabled, setCompareEnabled] = useState(false)
   const [selectedSnapshotId, setSelectedSnapshotId] = useState(null)
   const [toast, setToast] = useState(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   const {
     snapshots,
@@ -40,13 +46,13 @@ function App() {
   // Logic an toàn: nếu snapshot đang so sánh bị xóa, quay về snapshot gần nhất
   const comparisonScores = useCallback(() => {
     if (!compareEnabled) return null
-    
+
     // Nếu có snapshot được chọn và nó vẫn tồn tại
     if (selectedSnapshotId) {
       const snapshot = getSnapshotById(selectedSnapshotId)
       if (snapshot) return snapshot.scores
     }
-    
+
     // Fallback: dùng snapshot gần nhất
     const latest = getLatestSnapshot()
     return latest?.scores || null
@@ -84,21 +90,19 @@ function App() {
   }
 
   return (
-    <div className={`min-h-screen p-4 md:p-6 transition-colors duration-300 ${
-      isDark 
-        ? 'bg-slate-900 text-white' 
-        : 'bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 text-slate-900'
-    }`}>
+    <div className={`min-h-screen p-4 md:p-6 transition-colors duration-300 ${isDark
+      ? 'bg-slate-900 text-white'
+      : 'bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 text-slate-900'
+      }`}>
       <ThemeToggle />
-      
+
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <header className="text-center mb-6 md:mb-8">
-          <h1 className={`text-3xl md:text-4xl font-bold bg-clip-text text-transparent ${
-            isDark 
-              ? 'bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'
-              : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'
-          }`}>
+          <h1 className={`text-3xl md:text-4xl font-bold bg-clip-text text-transparent ${isDark
+            ? 'bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400'
+            : 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'
+            }`}>
             🎡 Life Wheel
           </h1>
           <p className={`mt-2 text-sm md:text-base ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
@@ -109,9 +113,8 @@ function App() {
         {/* Compare indicator */}
         {compareEnabled && (
           <div className="mb-4 text-center">
-            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${
-              isDark ? 'bg-slate-700/50 text-slate-300' : 'bg-white/80 text-slate-700 shadow-sm'
-            }`}>
+            <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm ${isDark ? 'bg-slate-700/50 text-slate-300' : 'bg-white/80 text-slate-700 shadow-sm'
+              }`}>
               <span className="w-3 h-3 rounded-full bg-slate-400" />
               <span>
                 Đường nét đứt: {selectedSnapshotId ? 'Snapshot đã chọn' : 'Snapshot gần nhất'}
@@ -129,48 +132,45 @@ function App() {
         {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6 md:gap-8 items-start">
           {/* Wheel */}
-          <div className={`lg:col-span-2 rounded-2xl p-4 md:p-6 flex items-center justify-center border transition-colors ${
-            isDark 
-              ? 'bg-slate-800/50 border-slate-700' 
-              : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
-          }`}>
-            <LifeWheel 
-              scores={scores} 
+          <div className={`lg:col-span-2 rounded-2xl p-4 md:p-6 flex items-center justify-center border transition-colors ${isDark
+            ? 'bg-slate-800/50 border-slate-700'
+            : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
+            }`}>
+            <LifeWheel
+              scores={scores}
               comparisonScores={comparisonScores()}
               isDark={isDark}
             />
           </div>
 
           {/* Sliders */}
-          <div className={`rounded-2xl p-4 md:p-6 border transition-colors ${
-            isDark 
-              ? 'bg-slate-800/50 border-slate-700' 
-              : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
-          }`}>
-            <h2 className={`text-lg md:text-xl font-semibold mb-4 md:mb-6 ${
-              isDark ? 'text-slate-200' : 'text-slate-800'
+          <div className={`rounded-2xl p-4 md:p-6 border transition-colors ${isDark
+            ? 'bg-slate-800/50 border-slate-700'
+            : 'bg-white/70 border-slate-200 shadow-xl backdrop-blur-sm'
             }`}>
+            <h2 className={`text-lg md:text-xl font-semibold mb-4 md:mb-6 ${isDark ? 'text-slate-200' : 'text-slate-800'
+              }`}>
               📊 Điểm số các lĩnh vực
             </h2>
             <div className="space-y-4 md:space-y-5">
               {AREAS.map(area => (
                 <div key={area.id} className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <label 
+                    <label
                       className="text-sm font-medium flex items-center gap-2"
                       style={{ color: area.color }}
                     >
-                      <span 
-                        className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full" 
+                      <span
+                        className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full"
                         style={{ backgroundColor: area.color }}
                       />
                       {area.name}
                     </label>
-                    <span 
+                    <span
                       className="text-lg md:text-xl font-bold w-10 text-center rounded-lg py-0.5 md:py-1"
-                      style={{ 
+                      style={{
                         backgroundColor: `${area.color}20`,
-                        color: area.color 
+                        color: area.color
                       }}
                     >
                       {scores[area.id]}
@@ -197,9 +197,8 @@ function App() {
             </div>
 
             {/* Average score */}
-            <div className={`mt-6 pt-4 border-t text-center ${
-              isDark ? 'border-slate-700' : 'border-slate-200'
-            }`}>
+            <div className={`mt-6 pt-4 border-t text-center ${isDark ? 'border-slate-700' : 'border-slate-200'
+              }`}>
               <div className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Điểm trung bình</div>
               <div className="text-3xl font-bold text-indigo-500">
                 {(Object.values(scores).reduce((a, b) => a + b, 0) / 8).toFixed(1)}
@@ -210,19 +209,44 @@ function App() {
 
         {/* Actions */}
         <div className="mt-6 md:mt-8 flex flex-wrap gap-3 md:gap-4 justify-center">
-          <button 
+          {user ? (
+            <button
+              onClick={signOut}
+              className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+                ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20'
+                : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 shadow-sm'
+                }`}
+            >
+              <img
+                src={user.user_metadata?.avatar_url || 'https://www.gravatar.com/avatar'}
+                alt="Avatar"
+                className="w-6 h-6 rounded-full"
+              />
+              Đăng xuất
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+                ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+                }`}
+            >
+              🔐 Đăng nhập
+            </button>
+          )}
+          <button
             onClick={() => setShowSaveModal(true)}
             className="px-5 md:px-6 py-2.5 md:py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base shadow-lg shadow-indigo-500/25"
           >
             💾 Lưu Snapshot
           </button>
-          <button 
+          <button
             onClick={() => setShowSnapshotsModal(true)}
-            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
-              isDark 
-                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
-            }`}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+              : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+              }`}
           >
             📊 Snapshots
             {snapshots.length > 0 && (
@@ -231,54 +255,49 @@ function App() {
               </span>
             )}
           </button>
-          <button 
+          <button
             onClick={() => setCompareEnabled(!compareEnabled)}
-            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
-              compareEnabled 
-                ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/25' 
-                : isDark 
-                  ? 'bg-slate-700 hover:bg-slate-600 text-white'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
-            }`}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${compareEnabled
+              ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/25'
+              : isDark
+                ? 'bg-slate-700 hover:bg-slate-600 text-white'
+                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+              }`}
           >
             🔄 So sánh
           </button>
-          <button 
+          <button
             onClick={() => setShowGoalsModal(true)}
-            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
-              isDark 
-                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
-            }`}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+              : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+              }`}
           >
             🎯 Goals
           </button>
-          <button 
+          <button
             onClick={() => setShowDashboard(true)}
-            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
-              isDark 
-                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
-            }`}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+              : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+              }`}
           >
             📊 Dashboard
           </button>
-          <button 
+          <button
             onClick={() => setShowExportModal(true)}
-            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${
-              isDark 
-                ? 'bg-slate-700 hover:bg-slate-600 text-white' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
-            }`}
+            className={`px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-colors flex items-center gap-2 text-sm md:text-base ${isDark
+              ? 'bg-slate-700 hover:bg-slate-600 text-white'
+              : 'bg-white hover:bg-slate-50 text-slate-700 shadow-md border border-slate-200'
+              }`}
           >
             📥 Export
           </button>
         </div>
 
         {/* Footer */}
-        <footer className={`text-center mt-10 md:mt-12 text-xs md:text-sm ${
-          isDark ? 'text-slate-500' : 'text-slate-400'
-        }`}>
+        <footer className={`text-center mt-10 md:mt-12 text-xs md:text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'
+          }`}>
           <p>🎡 Life Wheel - Đánh giá cân bằng cuộc sống</p>
         </footer>
       </div>
@@ -327,13 +346,19 @@ function App() {
         getProgress={goalsHook.getProgress}
       />
 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        isDark={isDark}
+        onSuccess={() => showToast('✅ Đăng nhập thành công!')}
+      />
+
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg border z-50 animate-pulse ${
-          isDark 
-            ? 'bg-slate-700 border-slate-600 text-white' 
-            : 'bg-white border-slate-200 text-slate-800'
-        }`}>
+        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 px-6 py-3 rounded-xl shadow-lg border z-50 animate-pulse ${isDark
+          ? 'bg-slate-700 border-slate-600 text-white'
+          : 'bg-white border-slate-200 text-slate-800'
+          }`}>
           {toast}
         </div>
       )}

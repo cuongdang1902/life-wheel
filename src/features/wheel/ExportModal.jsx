@@ -172,7 +172,7 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
 
   const handleExport = async () => {
     if (!exportRef.current) return
-    
+
     setExporting(true)
     try {
       const dataUrl = await toPng(exportRef.current, {
@@ -180,7 +180,7 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
         pixelRatio: 2,
         backgroundColor: isDark ? '#0f172a' : '#f8fafc',
       })
-      
+
       const link = document.createElement('a')
       link.download = `life-wheel-${new Date().toISOString().split('T')[0]}.png`
       link.href = dataUrl
@@ -201,11 +201,10 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden border shadow-2xl ${
-        isDark 
-          ? 'bg-slate-800 border-slate-700' 
+      <div className={`rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden border shadow-2xl ${isDark
+          ? 'bg-slate-800 border-slate-700'
           : 'bg-white border-slate-200'
-      }`}>
+        }`}>
         {/* Header */}
         <div className={`p-4 border-b flex justify-between items-center ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
           <div>
@@ -218,9 +217,8 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
           </div>
           <button
             onClick={onClose}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-xl ${
-              isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
-            }`}
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-xl ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-500'
+              }`}
           >
             ×
           </button>
@@ -248,7 +246,7 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
             {/* Scores summary */}
             <div className="mt-3 grid grid-cols-2 gap-1.5">
               {AREAS.map(area => (
-                <div 
+                <div
                   key={area.id}
                   className="flex items-center justify-between px-2 py-1 rounded-lg"
                   style={{ backgroundColor: `${area.color}15` }}
@@ -279,16 +277,14 @@ export default function ExportModal({ isOpen, onClose, scores, isDark = true }) 
         </div>
 
         {/* Footer */}
-        <div className={`p-4 border-t flex gap-3 justify-end ${
-          isDark ? 'border-slate-700' : 'border-slate-200'
-        }`}>
+        <div className={`p-4 border-t flex gap-3 justify-end ${isDark ? 'border-slate-700' : 'border-slate-200'
+          }`}>
           <button
             onClick={onClose}
-            className={`px-4 py-2 rounded-xl font-medium transition-colors ${
-              isDark 
-                ? 'bg-slate-600 hover:bg-slate-500 text-white' 
+            className={`px-4 py-2 rounded-xl font-medium transition-colors ${isDark
+                ? 'bg-slate-600 hover:bg-slate-500 text-white'
                 : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-            }`}
+              }`}
           >
             Hủy
           </button>

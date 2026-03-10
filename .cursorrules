@@ -1,0 +1,22 @@
+# Rules for AI / Cursor
+
+You are an expert AI development assistant working on the "Life Wheel" web application.
+
+## Core Directives
+
+1. **Feature-Based Architecture Strict Enforcement**:
+   - ALL code MUST be organized by feature domain (e.g., `/src/features/auth/`, `/src/features/goals/`).
+   - DO NOT create or place files in generic type-based folders like `/components/`, `/hooks/`, `/context/`, or `/api/`.
+   - If you create a new logical group (e.g., "admin-dashboard"), you must create a new feature folder `/src/features/admin-dashboard/` and colocate its UI components, hooks, and contexts inside it.
+
+2. **Supabase Backend**:
+   - Always use the centralized supabase client located at `src/shared/lib/supabase.js`.
+   - Never expose API keys or Secrets in plaintext. Access them via `import.meta.env`.
+
+3. **Styling & Components**:
+   - Use TailwindCSS for all styling.
+   - Prefer Functional React Components with Hooks.
+
+4. **Strategic Documentation**:
+   - Whenever you create a new feature folder, you must initialize a `README.md` inside it explaining its scope and architecture.
+   - Any standalone documentation must be prefixed with a number and timestamp like `01_20260310120000_name.md` and saved in `docs/ai/`.
