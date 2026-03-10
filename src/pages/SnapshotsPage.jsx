@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatDate, getPeriodLabel, PERIODS } from '../features/snapshots/useSnapshots'
+import TrendChart from '../features/snapshots/TrendChart'
 
 export default function SnapshotsPage({
   snapshots,
@@ -10,6 +11,7 @@ export default function SnapshotsPage({
   compareEnabled,
   onToggleCompare,
   isDark = true,
+  reminder,
 }) {
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [confirmDeletePeriod, setConfirmDeletePeriod] = useState(null)
@@ -52,6 +54,13 @@ export default function SnapshotsPage({
         </h2>
       </div>
 
+      {/* Trend Chart */}
+      {snapshots.length > 0 && (
+        <div className={`px-6 py-4 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
+          <TrendChart snapshots={snapshots} isDark={isDark} />
+        </div>
+      )}
+
       {/* Compare toggle */}
       <div className={`px-6 py-4 border-b ${isDark
         ? 'bg-slate-700/30 border-slate-700'
@@ -77,6 +86,37 @@ export default function SnapshotsPage({
           )}
         </label>
       </div>
+
+      {/* Nhắc nhở định kỳ (tuỳ chọn) */}
+      {reminder?.isSupported && (
+        <div className={`px-6 py-4 border-b flex flex-wrap items-center gap-3 ${isDark ? 'border-slate-700 bg-slate-800/30' : 'border-slate-200 bg-slate-50'}`}>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={reminder.reminderEnabled}
+              onChange={(e) => {
+                const on = e.target.checked
+                reminder.setReminderEnabled(on)
+                if (on && reminder.permission !== 'granted') reminder.requestPermission()
+              }}
+              className="w-5 h-5 rounded border-slate-500 bg-slate-700 text-indigo-500 focus:ring-indigo-500"
+            />
+            <span className={isDark ? 'text-slate-200' : 'text-slate-700'}>🔔 Nhắc nhở cuối tháng/quý</span>
+          </label>
+          {reminder.reminderEnabled && reminder.permission === 'default' && (
+            <button
+              type="button"
+              onClick={() => reminder.requestPermission()}
+              className="text-sm px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400"
+            >
+              Cho phép thông báo
+            </button>
+          )}
+          {reminder.reminderEnabled && reminder.permission === 'denied' && (
+            <span className="text-xs text-amber-600 dark:text-amber-400">Bật thông báo trong cài đặt trình duyệt để nhận nhắc nhở.</span>
+          )}
+        </div>
+      )}
 
       {/* Snapshot list */}
       <div className="p-6 space-y-6">

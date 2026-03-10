@@ -17,6 +17,7 @@ import DashboardPage from './pages/DashboardPage'
 // Hooks
 import useSnapshots from './features/snapshots/useSnapshots'
 import useGoals from './features/goals/useGoals'
+import useReminder from './features/reminder/useReminder'
 import { useTheme } from './features/theme/ThemeContext'
 import { useAuth } from './features/auth/AuthContext'
 
@@ -40,6 +41,7 @@ function App() {
 
   const snapshotsHook = useSnapshots()
   const goalsHook = useGoals()
+  const reminderHook = useReminder()
 
   const comparisonScores = useCallback(() => {
     if (!compareEnabled) return null
@@ -110,6 +112,7 @@ function App() {
               compareEnabled={compareEnabled}
               onToggleCompare={setCompareEnabled}
               isDark={isDark}
+              reminder={reminderHook}
             />
           } />
           <Route path="/goals" element={

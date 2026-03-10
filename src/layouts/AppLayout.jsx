@@ -103,10 +103,36 @@ export default function AppLayout({ children, onOpenAuth }) {
                 </div>
             </header>
 
-            {/* Main Content */}
-            <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 pb-24 md:pb-6">
-                <Outlet />
-            </main>
+            {/* Main Content & Sidebar Wrapper */}
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row">
+
+                {/* Desktop Sidebar Navigation (Planned) */}
+                <aside className={`hidden md:flex flex-col w-64 p-6 pr-8 border-r min-h-[calc(100vh-65px)] sticky top-[65px] ${isDark ? 'border-slate-800' : 'border-slate-200'}`}>
+                    <div className="space-y-2">
+                        {NAV_ITEMS.map(item => (
+                            <NavLink
+                                key={item.to}
+                                to={item.to}
+                                end={item.to === '/'}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-4 px-4 py-3 rounded-xl font-medium transition-all ${isActive
+                                        ? isDark ? 'text-indigo-400 bg-indigo-500/10 shadow-sm' : 'text-indigo-600 bg-indigo-50 shadow-sm'
+                                        : isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    }`
+                                }
+                            >
+                                <span className="text-2xl">{item.icon}</span>
+                                <span className="text-base">{item.label}</span>
+                            </NavLink>
+                        ))}
+                    </div>
+                </aside>
+
+                {/* Main Content */}
+                <main className="flex-1 px-4 md:px-8 py-6 pb-24 md:pb-6 max-w-5xl">
+                    {children}
+                </main>
+            </div>
 
             {/* Bottom Navigation (Mobile) */}
             <nav className={`fixed bottom-0 left-0 right-0 z-40 md:hidden flex items-center justify-around px-2 py-2 border-t backdrop-blur-md ${isDark ? 'bg-slate-900/90 border-slate-700' : 'bg-white/90 border-slate-200 shadow-lg'
@@ -129,7 +155,6 @@ export default function AppLayout({ children, onOpenAuth }) {
                 ))}
             </nav>
 
-            {/* Desktop Sidebar Navigation (Planned) */}
         </div>
     )
 }
