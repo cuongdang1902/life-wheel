@@ -104,9 +104,18 @@ export default function useGoals() {
   const updateState = useCallback((period, areaId, updater) => {
     setGoals(prev => {
       const newGoals = { ...prev }
-      if (!newGoals[period]) newGoals[period] = {}
-      if (!newGoals[period][areaId]) newGoals[period][areaId] = createEmptyGoal()
-      newGoals[period][areaId] = updater(newGoals[period][areaId])
+      // Deep-clone nhánh period → areaId để tránh mutation chéo
+      newGoals[period] = { ...(newGoals[period] || {}) }
+      const currentGoal = newGoals[period][areaId]
+        ? {
+            ...newGoals[period][areaId],
+            subGoals: newGoals[period][areaId].subGoals.map(sg => ({
+              ...sg,
+              tasks: sg.tasks.map(t => ({ ...t })),
+            })),
+          }
+        : createEmptyGoal()
+      newGoals[period][areaId] = updater(currentGoal)
       if (!userId) {
         // Ghi localStorage khi chưa đăng nhập
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newGoals)) } catch (e) { console.error(e) }
