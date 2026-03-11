@@ -59,8 +59,8 @@ Tài liệu này ghi lại toàn bộ quá trình phát triển, các quyết đ
 ---
 
 ## 📈 Lộ trình Tiếp theo (Phase 3)
-- [ ] **Trend Chart**: Biểu đồ hình sin/đường thẳng hiển thị xu hướng phát triển qua các chu kỳ.
-- [ ] **Sharing System**: Xuất ảnh PNG (Wheel) hoặc link chia sẻ cho bạn bè.
+- [x] **Trend Chart**: Biểu đồ hình sin/đường thẳng hiển thị xu hướng phát triển qua các chu kỳ (đã có trong màn hình Snapshots).
+- [x] **Sharing System**: Xuất ảnh PNG (Wheel) hoặc link chia sẻ cho bạn bè (đã có ở trang chủ vòng xoay).
 - [ ] **AI Coach**: Tích hợp Gemini API để phân tích điểm số và đưa ra lời khuyên cải thiện cuộc sống.
 - [ ] **Reminders**: Thông báo nhắc nhở cập nhật điểm số hàng tháng.
 
