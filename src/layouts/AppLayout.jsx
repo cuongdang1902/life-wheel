@@ -63,11 +63,20 @@ export default function AppLayout({ children, onOpenAuth }) {
                                 onClick={() => setDropdownOpen(prev => !prev)}
                                 className="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
                             >
-                                <img
-                                    src={user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${user.email}`}
-                                    alt="Avatar"
-                                    className="w-8 h-8 rounded-full border-2 border-indigo-400"
-                                />
+                                {user.user_metadata?.avatar_url ? (
+                                    <img
+                                        src={user.user_metadata.avatar_url}
+                                        alt="Avatar"
+                                        className="w-8 h-8 rounded-full border-2 border-indigo-400"
+                                        onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                                    />
+                                ) : null}
+                                <div
+                                    className="w-8 h-8 rounded-full border-2 border-indigo-400 bg-indigo-600 text-white flex items-center justify-center text-sm font-bold"
+                                    style={{ display: user.user_metadata?.avatar_url ? 'none' : 'flex' }}
+                                >
+                                    {(user.user_metadata?.full_name || user.email || '?')[0].toUpperCase()}
+                                </div>
                                 <span className={`text-sm font-medium hidden md:block ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
                                     {user.user_metadata?.full_name || user.email?.split('@')[0]}
                                 </span>
