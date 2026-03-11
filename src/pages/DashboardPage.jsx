@@ -6,7 +6,7 @@ const currentYear = currentDate.getFullYear()
 const currentMonth = currentDate.getMonth() + 1
 const currentQuarter = Math.ceil(currentMonth / 3)
 
-const YEARS = [currentYear - 1, currentYear, currentYear + 1]
+const YEARS = Array.from({ length: 31 }, (_, i) => currentYear - 10 + i)
 const QUARTERS = [1, 2, 3, 4]
 const MONTHS_IN_QUARTER = {
   1: [1, 2, 3],
