@@ -23,31 +23,42 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         // A. Lấy session hiện tại lúc mới vào app
         const getInitialSession = async () => {
-            const { data: { session }, error } = await supabase.auth.getSession()
-
-            if (error) {
-                console.error('Lỗi khi lấy session Supabase:', error.message)
-            } else {
-                setSession(session)
-                setUser(session?.user ?? null)
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession()
+                if (error) {
+                    console.error('Lỗi khi lấy session Supabase:', error.message)
+                } else {
+                    setSession(session)
+                    setUser(session?.user ?? null)
+                }
+            } catch (e) {
+                console.error('Lỗi khởi tạo Auth (kiểm tra .env hoặc Supabase):', e)
+            } finally {
+                setIsLoading(false)
             }
-            setIsLoading(false)
         }
 
         getInitialSession()
 
         // B. Lắng nghe mọi thay đổi (Đăng nhập, Đăng xuất, Đổi mật khẩu...)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (_event, currentSession) => {
-                setSession(currentSession)
-                setUser(currentSession?.user ?? null)
-                setIsLoading(false)
-            }
-        )
+        let subscription
+        try {
+            const { data: { subscription: sub } } = supabase.auth.onAuthStateChange(
+                (_event, currentSession) => {
+                    setSession(currentSession)
+                    setUser(currentSession?.user ?? null)
+                    setIsLoading(false)
+                }
+            )
+            subscription = sub
+        } catch (e) {
+            console.error('Lỗi onAuthStateChange:', e)
+            setIsLoading(false)
+        }
 
         // Cleanup khi component unmount
         return () => {
-            subscription.unsubscribe()
+            subscription?.unsubscribe?.()
         }
     }, [])
 

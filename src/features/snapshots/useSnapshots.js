@@ -33,11 +33,17 @@ export default function useSnapshots() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUserId(session?.user?.id ?? null)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null)
-    })
-    return () => subscription.unsubscribe()
+    }).catch(() => setUserId(null))
+    let subscription
+    try {
+      const { data: { subscription: sub } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUserId(session?.user?.id ?? null)
+      })
+      subscription = sub
+    } catch (_) {
+      subscription = { unsubscribe: () => {} }
+    }
+    return () => subscription?.unsubscribe?.()
   }, [])
 
   // Load snapshots theo trạng thái đăng nhập
