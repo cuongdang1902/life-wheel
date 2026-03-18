@@ -1,5 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import { AREAS } from '../features/wheel/LifeWheel'
+import ReviewStatus from '../features/goals/ReviewStatus'
+import ReviewPanel from '../features/goals/ReviewPanel'
 
 // Helpers để tạo period key
 const currentDate = new Date()
@@ -29,6 +31,9 @@ export default function GoalsPage({
   goals,
   getGoal,
   updateObjective,
+  updateReview,
+  updateSubGoalReview,
+  updateTaskNote,
   addSubGoal,
   updateSubGoal,
   deleteSubGoal,
@@ -53,7 +58,11 @@ export default function GoalsPage({
   const [editingObjective, setEditingObjective] = useState(false)
   const [objectiveInput, setObjectiveInput] = useState('')
   const [confirmClear, setConfirmClear] = useState(false)
-  const [copiedKey, setCopiedKey] = useState(null) // key của goal vừa được copy
+  const [copiedKey, setCopiedKey] = useState(null)
+  // Review states
+  const [showReview, setShowReview] = useState(false)           // review panel của objective chính
+  const [showSubGoalReview, setShowSubGoalReview] = useState(null) // id sub-goal đang mở review
+  const [editingTaskNote, setEditingTaskNote] = useState(null)  // id task đang nhập note
 
   // Computed period key
   const periodKey = useMemo(() => {
@@ -74,6 +83,9 @@ export default function GoalsPage({
     setNewSubGoalTitle('')
     setNewTaskTexts({})
     setConfirmClear(false)
+    setShowReview(false)
+    setShowSubGoalReview(null)
+    setEditingTaskNote(null)
   }
 
   // Khi chuyển quý, sync tháng vào quý đó
@@ -101,6 +113,20 @@ export default function GoalsPage({
     setConfirmClear(false)
     setEditingObjective(false)
     setObjectiveInput('')
+  }
+
+  // Review handlers
+  const handleSaveReview = (review) => {
+    updateReview(periodKey, selectedArea, review)
+    setShowReview(false)
+  }
+  const handleSaveSubGoalReview = (subGoalId, review) => {
+    updateSubGoalReview(periodKey, selectedArea, subGoalId, review)
+    setShowSubGoalReview(null)
+  }
+  const handleSaveTaskNote = (subGoalId, taskId, note) => {
+    updateTaskNote(periodKey, selectedArea, subGoalId, taskId, note)
+    setEditingTaskNote(null)
   }
 
   // Copy objective vào clipboard, hiện checkmark trong 2 giây
@@ -280,12 +306,27 @@ export default function GoalsPage({
         {/* Objective (hiện ở mọi cấp) */}
         <div className={`p-4 rounded-xl border ${isDark ? 'bg-slate-700/50 border-slate-600' : 'bg-slate-50 border-slate-200'}`}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              🎯 Mục tiêu {viewLevel === 'year' ? 'Năm' : viewLevel === 'quarter' ? 'Quý' : 'Tháng'}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
+                🎯 Mục tiêu {viewLevel === 'year' ? 'Năm' : viewLevel === 'quarter' ? 'Quý' : 'Tháng'}
+              </h3>
+              {currentGoal.review && <ReviewStatus status={currentGoal.review.status} isDark={isDark} />}
+            </div>
           <div className="flex items-center gap-2">
               {currentGoal.objective && !editingObjective && (
                 <>
+                  {/* Review button */}
+                  <button
+                    onClick={() => { setShowReview(v => !v); setEditingObjective(false) }}
+                    title="Đánh giá kết quả"
+                    className={`flex items-center gap-1 text-xs px-2 py-1 rounded-lg transition-all ${
+                      showReview
+                        ? isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-700'
+                        : isDark ? 'bg-slate-600 text-slate-400 hover:bg-indigo-600/30 hover:text-indigo-400' : 'bg-slate-100 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600'
+                    }`}
+                  >
+                    📝 Review
+                  </button>
                   {/* Copy button */}
                   <button
                     onClick={(e) => handleCopy(currentGoal.objective, periodKey + selectedArea, e)}
@@ -348,6 +389,15 @@ export default function GoalsPage({
                 <p className={isDark ? 'text-slate-400' : 'text-slate-400'}>+ Nhấn để thêm mục tiêu...</p>
               )}
             </div>
+          )}
+          {/* Review Panel cho objective chính */}
+          {showReview && currentGoal.objective && (
+            <ReviewPanel
+              review={currentGoal.review}
+              onSave={handleSaveReview}
+              onCancel={() => setShowReview(false)}
+              isDark={isDark}
+            />
           )}
         </div>
 
@@ -505,10 +555,13 @@ export default function GoalsPage({
                   key={subGoal.id}
                   className={`group/sg p-4 rounded-xl border ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-white border-slate-200'}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
-                      {index + 1}
-                    </span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
+                        {index + 1}
+                      </span>
+                      {subGoal.review && <ReviewStatus status={subGoal.review.status} size="sm" isDark={isDark} />}
+                    </div>
                     <input
                       type="text"
                       value={subGoal.title}
@@ -516,6 +569,20 @@ export default function GoalsPage({
                       className={`flex-1 px-3 py-1 rounded-lg border-none bg-transparent font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
                       placeholder="Tên mục tiêu con..."
                     />
+                    {/* Review sub-goal button */}
+                    {subGoal.title && (
+                      <button
+                        onClick={() => setShowSubGoalReview(showSubGoalReview === subGoal.id ? null : subGoal.id)}
+                        title="Đánh giá mục tiêu con"
+                        className={`flex items-center justify-center w-6 h-6 rounded-md opacity-0 group-hover/sg:opacity-100 transition-all flex-shrink-0 ${
+                          showSubGoalReview === subGoal.id
+                            ? isDark ? 'opacity-100 bg-indigo-600 text-white' : 'opacity-100 bg-indigo-100 text-indigo-700'
+                            : isDark ? 'bg-slate-600 text-slate-400 hover:bg-indigo-600/30 hover:text-indigo-400' : 'bg-slate-100 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600'
+                        }`}
+                      >
+                        📝
+                      </button>
+                    )}
                     {/* Copy sub-goal */}
                     {subGoal.title && (
                       <button
@@ -532,16 +599,26 @@ export default function GoalsPage({
                     )}
                     <button
                       onClick={() => deleteSubGoal(periodKey, selectedArea, subGoal.id)}
-                      className="text-red-400 hover:text-red-300 text-lg"
+                      className="text-red-400 hover:text-red-300 text-lg flex-shrink-0"
                     >
                       🗑️
                     </button>
                   </div>
+                  {/* Sub-goal ReviewPanel mini */}
+                  {showSubGoalReview === subGoal.id && (
+                    <ReviewPanel
+                      review={subGoal.review}
+                      onSave={(review) => handleSaveSubGoalReview(subGoal.id, review)}
+                      onCancel={() => setShowSubGoalReview(null)}
+                      isDark={isDark}
+                    />
+                  )}
 
                   {/* Tasks */}
                   <div className="ml-9 space-y-2">
                     {subGoal.tasks.map(task => (
-                      <div key={task.id} className="group/task flex items-center gap-3">
+                      <Fragment key={task.id}>
+                      <div className="group/task flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={task.done}
@@ -575,6 +652,35 @@ export default function GoalsPage({
                           ✕
                         </button>
                       </div>
+                      {/* Task note: hiện khi đang edit hoặc đã có note */}
+                      {editingTaskNote === task.id ? (
+                        <div className="ml-8 mt-1 flex gap-2">
+                          <input
+                            type="text"
+                            autoFocus
+                            defaultValue={task.note || ''}
+                            placeholder="Lý do chưa hoàn thành..."
+                            onBlur={(e) => handleSaveTaskNote(subGoal.id, task.id, e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSaveTaskNote(subGoal.id, task.id, e.target.value); if (e.key === 'Escape') setEditingTaskNote(null) }}
+                            className={`flex-1 px-2 py-0.5 rounded text-xs border ${isDark ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-700 placeholder-slate-400'}`}
+                          />
+                        </div>
+                      ) : task.note ? (
+                        <div
+                          className="ml-8 mt-0.5 flex items-start gap-1 cursor-pointer"
+                          onClick={() => setEditingTaskNote(task.id)}
+                        >
+                          <span className={`text-xs italic ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>↳ {task.note}</span>
+                        </div>
+                      ) : !task.done && (
+                        <div
+                          className="ml-8 mt-0.5 cursor-pointer opacity-0 group-hover/task:opacity-100 transition-opacity"
+                          onClick={() => setEditingTaskNote(task.id)}
+                        >
+                          <span className={`text-xs ${isDark ? 'text-slate-600 hover:text-slate-500' : 'text-slate-400 hover:text-slate-500'}`}>+ Ghi chú lý do</span>
+                        </div>
+                      )}
+                      </Fragment>
                     ))}
 
                     {/* Add task */}

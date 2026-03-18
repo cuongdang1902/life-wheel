@@ -46,13 +46,13 @@ export default function useGoals() {
       console.error('Error loading goals from Supabase:', error.message)
       return
     }
-    // Chuẩn hóa dữ liệu flat từ Supabase thành cấu trúc lồng nhau { period: { areaId: { objective, subGoals } } }
     const normalized = {}
     data.forEach(row => {
       if (!normalized[row.period]) normalized[row.period] = {}
       normalized[row.period][row.area_id] = {
-        _supabaseId: row.id, // lưu id để update sau
+        _supabaseId: row.id,
         objective: row.objective || '',
+        review: row.review || null,       // MỚI
         subGoals: row.sub_goals || [],
       }
     })
@@ -72,7 +72,6 @@ export default function useGoals() {
     return goals[period]?.[areaId] || createEmptyGoal()
   }, [goals])
 
-  // Helper: Sync 1 goal lên Supabase (upsert)
   const syncGoalToSupabase = useCallback(async (period, areaId, goalData) => {
     if (!userId) return
     const existingId = goalData._supabaseId
@@ -82,17 +81,15 @@ export default function useGoals() {
       area_id: areaId,
       objective: goalData.objective,
       sub_goals: goalData.subGoals,
+      review: goalData.review ?? null,    // MỚI
       updated_at: new Date().toISOString(),
     }
     if (existingId) {
-      // Update bản ghi đã tồn tại
       const { error } = await supabase.from('goals').update(payload).eq('id', existingId)
       if (error) console.error('Error updating goal:', error.message)
     } else {
-      // Tạo bản ghi mới và lưu id lại
       const { data, error } = await supabase.from('goals').insert([payload]).select().single()
       if (error) { console.error('Error inserting goal:', error.message); return }
-      // Gắn id mới vào state local để lần sau update đúng
       setGoals(prev => {
         const updated = { ...prev }
         if (updated[period]?.[areaId]) updated[period][areaId]._supabaseId = data.id
@@ -127,6 +124,45 @@ export default function useGoals() {
   const updateObjective = useCallback((period, areaId, objective) => {
     updateState(period, areaId, (goal) => {
       const updated = { ...goal, objective }
+      syncGoalToSupabase(period, areaId, updated)
+      return updated
+    })
+  }, [updateState, syncGoalToSupabase])
+
+  // Cập nhật review của objective chính (cấp Năm/Quý/Tháng)
+  const updateReview = useCallback((period, areaId, review) => {
+    updateState(period, areaId, (goal) => {
+      const updated = { ...goal, review }
+      syncGoalToSupabase(period, areaId, updated)
+      return updated
+    })
+  }, [updateState, syncGoalToSupabase])
+
+  // Cập nhật review của sub-goal (lưu trong sub_goals JSONB)
+  const updateSubGoalReview = useCallback((period, areaId, subGoalId, review) => {
+    updateState(period, areaId, (goal) => {
+      const updated = {
+        ...goal,
+        subGoals: goal.subGoals.map(sg =>
+          sg.id === subGoalId ? { ...sg, review } : sg
+        )
+      }
+      syncGoalToSupabase(period, areaId, updated)
+      return updated
+    })
+  }, [updateState, syncGoalToSupabase])
+
+  // Cập nhật note lý do của task (lưu trong sub_goals JSONB)
+  const updateTaskNote = useCallback((period, areaId, subGoalId, taskId, note) => {
+    updateState(period, areaId, (goal) => {
+      const updated = {
+        ...goal,
+        subGoals: goal.subGoals.map(sg =>
+          sg.id === subGoalId
+            ? { ...sg, tasks: sg.tasks.map(t => t.id === taskId ? { ...t, note } : t) }
+            : sg
+        )
+      }
       syncGoalToSupabase(period, areaId, updated)
       return updated
     })
@@ -252,6 +288,9 @@ export default function useGoals() {
     goals,
     getGoal,
     updateObjective,
+    updateReview,
+    updateSubGoalReview,
+    updateTaskNote,
     addSubGoal,
     updateSubGoal,
     deleteSubGoal,
