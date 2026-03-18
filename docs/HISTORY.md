@@ -58,11 +58,55 @@ Tài liệu này ghi lại toàn bộ quá trình phát triển, các quyết đ
 
 ---
 
-## 📈 Lộ trình Tiếp theo (Phase 3)
+## 🐛 Giai đoạn 3: Bug Fixes & UX Improvements — Goals (OKR)
+*Thời gian: 18/03/2026*
+
+### 3.1 Fix Bug: Mục tiêu Tháng hiển thị nhầm nội dung Quý
+
+- **Vấn đề**: Khi đang ở chế độ chỉnh sửa mục tiêu (`editingObjective = true`) rồi chuyển sang tab/period khác, state `editingObjective` không được reset → ô input vẫn hiển thị nội dung của period cũ thay vì period mới.
+- **Nguyên nhân gốc**: Không có cơ chế reset trạng thái khi người dùng thay đổi context (Năm/Quý/Tháng/Lĩnh vực).
+- **Fix ban đầu**: Dùng `useEffect` theo dõi `periodKey` và `selectedArea` để reset.
+
+### 3.2 Fix Bug: Lưu nhầm mục tiêu của lĩnh vực khác
+
+- **Vấn đề**: Khi đang edit mục tiêu của lĩnh vực A, chuyển sang lĩnh vực B (form vẫn mở do bug 3.1), bấm ✓ → lưu nội dung của A vào lĩnh vực B trong Supabase.
+- **Biểu hiện**: Chuyển sang "Sức khỏe" thấy hiển thị mục tiêu của "Phát triển bản thân".
+- **Fix triệt để**: Thay `useEffect` (chạy sau render — không đủ nhanh) bằng hàm **`resetInputs()`** chạy đồng bộ trong **mọi event handler** điều hướng:
+  - Click tab Năm / Quý / Tháng
+  - Đổi lĩnh vực (Area dropdown)
+  - Đổi năm / quý / tháng
+  - Click card Quý (từ view Năm)
+  - Click card Tháng (từ view Quý)
+- `resetInputs()` reset toàn bộ: `editingObjective`, `objectiveInput`, `newSubGoalTitle`, `newTaskTexts`, `confirmClear`.
+
+### 3.3 Thêm tính năng: Xóa mục tiêu (clearGoal)
+
+- **Lý do**: Sau khi data bị lưu nhầm vào Supabase (do bug 3.2), cần cách để user tự sửa mà không phải vào DB.
+- **Thêm `clearGoal(period, areaId)`** vào `useGoals.js`:
+  - Xóa row khỏi **Supabase** (nếu đã đăng nhập và tồn tại `_supabaseId`).
+  - Xóa key khỏi **local state** (và `localStorage` nếu chưa đăng nhập).
+- **Thêm nút 🗑️** vào header card objective, với cơ chế **xác nhận 2 lần** (click lần 1 → "⚠️ Xác nhận xóa?", click lần 2 → thực sự xóa) để tránh bấm nhầm.
+
+### 3.4 Thêm tính năng: Copy button (giống ChatGPT)
+
+- **Vị trí**: Xuất hiện ở mọi nơi có hiển thị nội dung goal:
+  | Vị trí | Hiển thị | Kích thước |
+  |---|---|---|
+  | Card Mục tiêu chính (Năm/Quý/Tháng) | Luôn hiển thị khi có nội dung | `w-7 h-7` |
+  | Card Quý (view Năm) | Ẩn, hiện khi hover card | `w-6 h-6` |
+  | Card Tháng (view Quý) | Ẩn, hiện khi hover card | `w-6 h-6` |
+  | Sub-goal title | Ẩn, hiện khi hover card sub-goal | `w-6 h-6` |
+  | Task text | Ẩn, hiện khi hover row task | `w-5 h-5` |
+- **UX**: Icon copy SVG (Lucide-style) → chuyển thành checkmark SVG trong **2 giây** → tự reset. Dùng `copiedKey` state để track item nào vừa được copy.
+- **Kỹ thuật**: `e.stopPropagation()` để click copy không kích hoạt `onClick` của card cha. Dùng Tailwind **group nesting** (`group/sg`, `group/task`) để hover độc lập giữa các cấp.
+
+---
+
+## 📈 Lộ trình Tiếp theo (Phase 4)
 - [x] **Trend Chart**: Biểu đồ hình sin/đường thẳng hiển thị xu hướng phát triển qua các chu kỳ (đã có trong màn hình Snapshots).
 - [x] **Sharing System**: Xuất ảnh PNG (Wheel) hoặc link chia sẻ cho bạn bè (đã có ở trang chủ vòng xoay).
 - [ ] **AI Coach**: Tích hợp Gemini API để phân tích điểm số và đưa ra lời khuyên cải thiện cuộc sống.
 - [ ] **Reminders**: Thông báo nhắc nhở cập nhật điểm số hàng tháng.
 
 ---
-*Cập nhật lần cuối: 11/03/2026 bởi Antigravity AI*
+*Cập nhật lần cuối: 18/03/2026 bởi Antigravity AI*

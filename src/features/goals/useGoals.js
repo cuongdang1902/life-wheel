@@ -212,6 +212,28 @@ export default function useGoals() {
     })
   }, [updateState, syncGoalToSupabase])
 
+  // Xóa toàn bộ mục tiêu (objective + subGoals) của 1 period+area
+  const clearGoal = useCallback(async (period, areaId) => {
+    const existingId = goals[period]?.[areaId]?._supabaseId
+    if (userId && existingId) {
+      // Xóa hẳn row trên Supabase
+      const { error } = await supabase.from('goals').delete().eq('id', existingId)
+      if (error) console.error('Error deleting goal:', error.message)
+    }
+    // Xóa khỏi local state
+    setGoals(prev => {
+      const newGoals = { ...prev }
+      if (newGoals[period]) {
+        newGoals[period] = { ...newGoals[period] }
+        delete newGoals[period][areaId]
+      }
+      if (!userId) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newGoals)) } catch (e) { console.error(e) }
+      }
+      return newGoals
+    })
+  }, [goals, userId])
+
   const getProgress = useCallback((period, areaId) => {
     const goal = goals[period]?.[areaId]
     if (!goal || goal.subGoals.length === 0) return 0
@@ -238,5 +260,6 @@ export default function useGoals() {
     deleteTask,
     toggleTask,
     getProgress,
+    clearGoal,
   }
 }

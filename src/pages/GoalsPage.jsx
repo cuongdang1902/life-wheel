@@ -37,6 +37,7 @@ export default function GoalsPage({
   deleteTask,
   toggleTask,
   getProgress,
+  clearGoal,
   isDark = true,
 }) {
   // State: level & selections
@@ -51,6 +52,8 @@ export default function GoalsPage({
   const [newTaskTexts, setNewTaskTexts] = useState({})
   const [editingObjective, setEditingObjective] = useState(false)
   const [objectiveInput, setObjectiveInput] = useState('')
+  const [confirmClear, setConfirmClear] = useState(false)
+  const [copiedKey, setCopiedKey] = useState(null) // key của goal vừa được copy
 
   // Computed period key
   const periodKey = useMemo(() => {
@@ -63,8 +66,19 @@ export default function GoalsPage({
   const progress = getProgress(periodKey, selectedArea)
   const currentArea = AREAS.find(a => a.id === selectedArea)
 
+  // Reset toàn bộ input khi đổi context (area / period)
+  // Gọi đồng bộ trong handler thay vì useEffect để tránh render nhầm dữ liệu
+  const resetInputs = () => {
+    setEditingObjective(false)
+    setObjectiveInput('')
+    setNewSubGoalTitle('')
+    setNewTaskTexts({})
+    setConfirmClear(false)
+  }
+
   // Khi chuyển quý, sync tháng vào quý đó
   const handleQuarterChange = (q) => {
+    resetInputs()
     setSelectedQuarter(q)
     const monthsInQ = MONTHS_IN_QUARTER[q]
     if (!monthsInQ.includes(selectedMonth)) {
@@ -81,6 +95,36 @@ export default function GoalsPage({
     updateObjective(periodKey, selectedArea, objectiveInput)
     setEditingObjective(false)
   }
+  const handleClearGoal = () => {
+    if (!confirmClear) { setConfirmClear(true); return }
+    clearGoal(periodKey, selectedArea)
+    setConfirmClear(false)
+    setEditingObjective(false)
+    setObjectiveInput('')
+  }
+
+  // Copy objective vào clipboard, hiện checkmark trong 2 giây
+  const handleCopy = (text, key, e) => {
+    e?.stopPropagation()
+    if (!text) return
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedKey(key)
+      setTimeout(() => setCopiedKey(null), 2000)
+    })
+  }
+
+  // SVG icons
+  const IconCopy = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  )
+  const IconCheck = () => (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  )
 
   // Sub-goal (chỉ ở cấp Tháng)
   const handleAddSubGoal = () => {
@@ -133,7 +177,7 @@ export default function GoalsPage({
             ].map(level => (
               <button
                 key={level.value}
-                onClick={() => setViewLevel(level.value)}
+                onClick={() => { resetInputs(); setViewLevel(level.value) }}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${viewLevel === level.value
                   ? 'bg-indigo-600 text-white'
                   : isDark
@@ -149,7 +193,7 @@ export default function GoalsPage({
           {/* Area selector */}
           <select
             value={selectedArea}
-            onChange={(e) => setSelectedArea(e.target.value)}
+            onChange={(e) => { resetInputs(); setSelectedArea(e.target.value) }}
             className={`px-4 py-2 rounded-lg text-sm font-medium border ${isDark
               ? 'bg-slate-600 text-white border-slate-500'
               : 'bg-white text-slate-700 border-slate-200'
@@ -181,7 +225,7 @@ export default function GoalsPage({
           {/* Year dropdown */}
           <select
             value={selectedYear}
-            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            onChange={(e) => { resetInputs(); setSelectedYear(Number(e.target.value)) }}
             className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${isDark
               ? 'bg-slate-600 text-white border-slate-500'
               : 'bg-white text-slate-700 border-slate-300'
@@ -212,7 +256,7 @@ export default function GoalsPage({
           {viewLevel === 'month' && (
             <select
               value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              onChange={(e) => { resetInputs(); setSelectedMonth(Number(e.target.value)) }}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${isDark
                 ? 'bg-slate-600 text-white border-slate-500'
                 : 'bg-white text-slate-700 border-slate-300'
@@ -239,7 +283,38 @@ export default function GoalsPage({
             <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
               🎯 Mục tiêu {viewLevel === 'year' ? 'Năm' : viewLevel === 'quarter' ? 'Quý' : 'Tháng'}
             </h3>
-            <span className="w-3 h-3 rounded-full" style={{ backgroundColor: currentArea?.color }} />
+          <div className="flex items-center gap-2">
+              {currentGoal.objective && !editingObjective && (
+                <>
+                  {/* Copy button */}
+                  <button
+                    onClick={(e) => handleCopy(currentGoal.objective, periodKey + selectedArea, e)}
+                    title="Copy mục tiêu"
+                    className={`flex items-center justify-center w-7 h-7 rounded-md transition-all ${
+                      copiedKey === periodKey + selectedArea
+                        ? isDark ? 'bg-green-500/20 text-green-400' : 'bg-green-50 text-green-600'
+                        : isDark ? 'bg-slate-600 text-slate-400 hover:bg-slate-500 hover:text-slate-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600'
+                    }`}
+                  >
+                    {copiedKey === periodKey + selectedArea ? <IconCheck /> : <IconCopy />}
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    onClick={handleClearGoal}
+                    onBlur={() => setConfirmClear(false)}
+                    title="Xóa mục tiêu này"
+                    className={`text-xs px-2 py-1 rounded-lg transition-colors ${
+                      confirmClear
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : isDark ? 'bg-slate-600 text-slate-400 hover:bg-red-500/30 hover:text-red-400' : 'bg-slate-100 text-slate-400 hover:bg-red-50 hover:text-red-500'
+                    }`}
+                  >
+                    {confirmClear ? '⚠️ Xác nhận xóa?' : '🗑️'}
+                  </button>
+                </>
+              )}
+              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: currentArea?.color }} />
+            </div>
           </div>
 
           {editingObjective ? (
@@ -292,8 +367,8 @@ export default function GoalsPage({
                 return (
                   <div
                     key={q}
-                    onClick={() => { setViewLevel('quarter'); setSelectedQuarter(q) }}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] ${isDark
+                    onClick={() => { resetInputs(); setViewLevel('quarter'); setSelectedQuarter(q) }}
+                    className={`group p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.02] ${isDark
                       ? 'bg-slate-700/30 border-slate-600 hover:border-indigo-500'
                       : 'bg-white border-slate-200 hover:border-indigo-400 shadow-sm'
                       }`}
@@ -302,11 +377,26 @@ export default function GoalsPage({
                       <span className={`text-sm font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                         Quý {q}
                       </span>
-                      {qProgress > 0 && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-green-600/20 text-green-400' : 'bg-green-50 text-green-600'}`}>
-                          {qProgress}%
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {qGoal.objective && (
+                          <button
+                            onClick={(e) => handleCopy(qGoal.objective, `q-${q}`, e)}
+                            title="Copy mục tiêu"
+                            className={`flex items-center justify-center w-6 h-6 rounded-md opacity-0 group-hover:opacity-100 transition-all ${
+                              copiedKey === `q-${q}`
+                                ? isDark ? 'opacity-100 bg-green-500/20 text-green-400' : 'opacity-100 bg-green-50 text-green-600'
+                                : isDark ? 'bg-slate-600 text-slate-400 hover:bg-slate-500 hover:text-slate-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600'
+                            }`}
+                          >
+                            {copiedKey === `q-${q}` ? <IconCheck /> : <IconCopy />}
+                          </button>
+                        )}
+                        {qProgress > 0 && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${isDark ? 'bg-green-600/20 text-green-400' : 'bg-green-50 text-green-600'}`}>
+                            {qProgress}%
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className={`text-sm ${qGoal.objective
                       ? isDark ? 'text-slate-200' : 'text-slate-700'
@@ -338,8 +428,8 @@ export default function GoalsPage({
                 return (
                   <div
                     key={m}
-                    onClick={() => { setViewLevel('month'); setSelectedMonth(m) }}
-                    className={`p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] ${isDark
+                    onClick={() => { resetInputs(); setViewLevel('month'); setSelectedMonth(m) }}
+                    className={`group p-4 rounded-xl border cursor-pointer transition-all hover:scale-[1.01] ${isDark
                       ? 'bg-slate-700/30 border-slate-600 hover:border-indigo-500'
                       : 'bg-white border-slate-200 hover:border-indigo-400 shadow-sm'
                       }`}
@@ -348,7 +438,20 @@ export default function GoalsPage({
                       <span className={`text-sm font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
                         {MONTH_NAMES[m]}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        {mGoal.objective && (
+                          <button
+                            onClick={(e) => handleCopy(mGoal.objective, `m-${m}`, e)}
+                            title="Copy mục tiêu"
+                            className={`flex items-center justify-center w-6 h-6 rounded-md opacity-0 group-hover:opacity-100 transition-all ${
+                              copiedKey === `m-${m}`
+                                ? isDark ? 'opacity-100 bg-green-500/20 text-green-400' : 'opacity-100 bg-green-50 text-green-600'
+                                : isDark ? 'bg-slate-600 text-slate-400 hover:bg-slate-500 hover:text-slate-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600'
+                            }`}
+                          >
+                            {copiedKey === `m-${m}` ? <IconCheck /> : <IconCopy />}
+                          </button>
+                        )}
                         {totalTasks > 0 && (
                           <span className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                             {doneTasks}/{totalTasks} tasks
@@ -400,9 +503,8 @@ export default function GoalsPage({
               {currentGoal.subGoals.map((subGoal, index) => (
                 <div
                   key={subGoal.id}
-                  className={`p-4 rounded-xl border ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-white border-slate-200'}`}
+                  className={`group/sg p-4 rounded-xl border ${isDark ? 'bg-slate-700/30 border-slate-600' : 'bg-white border-slate-200'}`}
                 >
-                  {/* Sub-goal header */}
                   <div className="flex items-center gap-3 mb-3">
                     <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${isDark ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600'}`}>
                       {index + 1}
@@ -414,6 +516,20 @@ export default function GoalsPage({
                       className={`flex-1 px-3 py-1 rounded-lg border-none bg-transparent font-medium ${isDark ? 'text-white' : 'text-slate-800'}`}
                       placeholder="Tên mục tiêu con..."
                     />
+                    {/* Copy sub-goal */}
+                    {subGoal.title && (
+                      <button
+                        onClick={() => handleCopy(subGoal.title, `sg-${subGoal.id}`)}
+                        title="Copy mục tiêu con"
+                        className={`flex items-center justify-center w-6 h-6 rounded-md opacity-0 group-hover/sg:opacity-100 transition-all ${
+                          copiedKey === `sg-${subGoal.id}`
+                            ? isDark ? 'opacity-100 bg-green-500/20 text-green-400' : 'opacity-100 bg-green-50 text-green-600'
+                            : isDark ? 'bg-slate-600 text-slate-400 hover:bg-slate-500 hover:text-slate-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600'
+                        }`}
+                      >
+                        {copiedKey === `sg-${subGoal.id}` ? <IconCheck /> : <IconCopy />}
+                      </button>
+                    )}
                     <button
                       onClick={() => deleteSubGoal(periodKey, selectedArea, subGoal.id)}
                       className="text-red-400 hover:text-red-300 text-lg"
@@ -425,7 +541,7 @@ export default function GoalsPage({
                   {/* Tasks */}
                   <div className="ml-9 space-y-2">
                     {subGoal.tasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-3">
+                      <div key={task.id} className="group/task flex items-center gap-3">
                         <input
                           type="checkbox"
                           checked={task.done}
@@ -438,9 +554,23 @@ export default function GoalsPage({
                           onChange={(e) => updateTask(periodKey, selectedArea, subGoal.id, task.id, { text: e.target.value })}
                           className={`flex-1 px-2 py-1 rounded bg-transparent ${task.done ? 'line-through opacity-50' : ''} ${isDark ? 'text-slate-300' : 'text-slate-600'}`}
                         />
+                        {/* Copy task */}
+                        {task.text && (
+                          <button
+                            onClick={() => handleCopy(task.text, `task-${task.id}`)}
+                            title="Copy task"
+                            className={`flex items-center justify-center w-5 h-5 rounded-md opacity-0 group-hover/task:opacity-100 transition-all flex-shrink-0 ${
+                              copiedKey === `task-${task.id}`
+                                ? isDark ? 'opacity-100 bg-green-500/20 text-green-400' : 'opacity-100 bg-green-50 text-green-600'
+                                : isDark ? 'bg-slate-600 text-slate-400 hover:bg-slate-500 hover:text-slate-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600'
+                            }`}
+                          >
+                            {copiedKey === `task-${task.id}` ? <IconCheck /> : <IconCopy />}
+                          </button>
+                        )}
                         <button
                           onClick={() => deleteTask(periodKey, selectedArea, subGoal.id, task.id)}
-                          className="text-red-400 hover:text-red-300 opacity-50 hover:opacity-100"
+                          className="text-red-400 hover:text-red-300 opacity-50 hover:opacity-100 flex-shrink-0"
                         >
                           ✕
                         </button>
