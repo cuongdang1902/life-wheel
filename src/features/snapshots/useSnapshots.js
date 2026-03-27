@@ -25,6 +25,18 @@ export function formatDate(isoString) {
   })
 }
 
+// Helper: extract YYYY-MM from ISO date string without timezone issues
+// Works by parsing the ISO string directly: "2026-01-15T12:00:00.000Z" → "2026-01"
+function isoToMonthKey(isoString) {
+  if (!isoString) return null
+  // ISO string always starts with YYYY-MM-DD
+  const match = isoString.match(/^(\d{4})-(\d{2})/)
+  if (match) return `${match[1]}-${match[2]}`
+  // Fallback: parse as Date using local time
+  const d = new Date(isoString)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
 export default function useSnapshots() {
   const [snapshots, setSnapshots] = useState([])
   const [userId, setUserId] = useState(null)
@@ -49,10 +61,8 @@ export default function useSnapshots() {
   // Load snapshots theo trạng thái đăng nhập
   useEffect(() => {
     if (userId) {
-      // Đã đăng nhập: tải từ Supabase
       loadFromSupabase(userId)
     } else {
-      // Chưa đăng nhập: tải từ localStorage
       try {
         const saved = localStorage.getItem(STORAGE_KEY)
         if (saved) setSnapshots(JSON.parse(saved))
@@ -71,17 +81,16 @@ export default function useSnapshots() {
     if (error) {
       console.error('Error loading snapshots from Supabase:', error.message)
     } else {
-      // Chuẩn hóa dữ liệu từ Supabase sang format dùng ở app
       setSnapshots(data.map(s => ({
         id: s.id,
         date: s.created_at,
         period: s.period,
         scores: s.scores,
+        monthKey: s.period === 'month' ? isoToMonthKey(s.created_at) : null,
       })))
     }
   }
 
-  // Lưu vào localStorage (khi chưa đăng nhập)
   const saveToLocalStorage = useCallback((newSnapshots) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newSnapshots))
@@ -93,21 +102,20 @@ export default function useSnapshots() {
 
   const addSnapshot = useCallback(async (scores, period) => {
     if (userId) {
-      // Đã đăng nhập: lưu lên Supabase
       const { data, error } = await supabase
         .from('snapshots')
         .insert([{ user_id: userId, scores, period }])
         .select()
-        .single()
       if (error) {
         console.error('Error saving snapshot to Supabase:', error.message)
         return null
       }
-      const newSnapshot = { id: data.id, date: data.created_at, period: data.period, scores: data.scores }
+      const row = data?.[0]
+      if (!row) return null
+      const newSnapshot = { id: row.id, date: row.created_at, period: row.period, scores: row.scores }
       setSnapshots(prev => [newSnapshot, ...prev])
       return newSnapshot
     } else {
-      // Chưa đăng nhập: lưu vào localStorage
       const newSnapshot = {
         id: Date.now().toString(),
         date: new Date().toISOString(),
@@ -150,6 +158,79 @@ export default function useSnapshots() {
     return snapshots.find(s => s.id === id) || null
   }, [snapshots])
 
+  // ========== MONTHLY SCORING ==========
+
+  // Find snapshot by explicit monthKey (e.g. "2026-01") - no date parsing!
+  const getSnapshotByMonth = useCallback((mk) => {
+    const matches = snapshots.filter(s => {
+      if (s.monthKey === mk && s.period === 'month') return true
+      // Legacy fallback: parse date for old snapshots without monthKey
+      if (s.period === 'month' && !s.monthKey && isoToMonthKey(s.date) === mk) return true
+      return false
+    })
+    if (!matches.length) return null
+    return matches.sort((a, b) => new Date(b.date) - new Date(a.date))[0]
+  }, [snapshots])
+
+  // Upsert: update if exists for this monthKey, otherwise insert
+  const upsertMonthlySnapshot = useCallback(async (scores, year, month) => {
+    const mk = `${year}-${String(month).padStart(2, '0')}`
+    const targetDate = `${year}-${String(month).padStart(2, '0')}-15T12:00:00.000Z`
+
+    // Find existing by monthKey
+    const existing = snapshots.find(s => {
+      if (s.monthKey === mk && s.period === 'month') return true
+      if (s.period === 'month' && !s.monthKey && isoToMonthKey(s.date) === mk) return true
+      return false
+    })
+
+    if (existing) {
+      // UPDATE — avoid .select().single() which causes 406 errors with RLS
+      if (userId) {
+        const { error } = await supabase
+          .from('snapshots')
+          .update({ scores })
+          .eq('id', existing.id)
+          .eq('user_id', userId)
+        if (error) { console.error('Error updating monthly snapshot:', error.message); return null }
+        // Construct updated object from local data (no .select() needed)
+        const updated = { id: existing.id, date: existing.date, period: 'month', scores: { ...scores }, monthKey: mk }
+        setSnapshots(prev => prev.map(s => s.id === existing.id ? updated : s))
+        return updated
+      } else {
+        const updated = { ...existing, scores: { ...scores }, monthKey: mk }
+        const newList = snapshots.map(s => s.id === existing.id ? updated : s)
+        saveToLocalStorage(newList)
+        return updated
+      }
+    } else {
+      // INSERT
+      if (userId) {
+        const { data, error } = await supabase
+          .from('snapshots')
+          .insert([{ user_id: userId, scores, period: 'month', created_at: targetDate }])
+          .select()
+        if (error) { console.error('Error inserting monthly snapshot:', error.message); return null }
+        const row = data?.[0]
+        if (!row) { console.error('Error: insert returned no data'); return null }
+        const newSnapshot = { id: row.id, date: row.created_at, period: row.period, scores: row.scores, monthKey: mk }
+        setSnapshots(prev => [newSnapshot, ...prev])
+        return newSnapshot
+      } else {
+        const newSnapshot = {
+          id: Date.now().toString(),
+          date: targetDate,
+          period: 'month',
+          scores: { ...scores },
+          monthKey: mk,
+        }
+        const updated = [newSnapshot, ...snapshots]
+        saveToLocalStorage(updated)
+        return newSnapshot
+      }
+    }
+  }, [userId, snapshots, saveToLocalStorage])
+
   return {
     snapshots,
     addSnapshot,
@@ -157,5 +238,7 @@ export default function useSnapshots() {
     deleteByPeriod,
     getLatestSnapshot,
     getSnapshotById,
+    getSnapshotByMonth,
+    upsertMonthlySnapshot,
   }
 }

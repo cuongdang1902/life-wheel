@@ -2,17 +2,21 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTheme } from '../features/theme/ThemeContext'
 import { useAuth } from '../features/auth/AuthContext'
 import ThemeToggle from '../features/theme/ThemeToggle'
+import NotificationBell from '../features/sharing/NotificationBell'
 import { useState, useRef, useEffect } from 'react'
 
 // Bottom Navigation items
 const NAV_ITEMS = [
     { to: '/', icon: '🎡', label: 'Wheel' },
-    { to: '/snapshots', icon: '📊', label: 'Snapshots' },
+    { to: '/charts', icon: '📈', label: 'Charts' },
     { to: '/goals', icon: '🎯', label: 'Goals' },
     { to: '/dashboard', icon: '📈', label: 'Dashboard' },
+    { to: '/dream-board', icon: '🌟', label: 'Dreams' },
+    { to: '/bucket-list', icon: '📋', label: 'Bucket List' },
+    { to: '/friends', icon: '👥', label: 'Friends' },
 ]
 
-export default function AppLayout({ children, onOpenAuth }) {
+export default function AppLayout({ children, onOpenAuth, sharingHook }) {
     const { isDark } = useTheme()
     const { user, signOut } = useAuth()
     const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -54,8 +58,18 @@ export default function AppLayout({ children, onOpenAuth }) {
                 </div>
 
                 {/* Right controls */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <ThemeToggle />
+
+                    {/* Notification Bell — only for logged-in users */}
+                    {user && sharingHook && (
+                        <NotificationBell
+                            pendingInvites={sharingHook.pendingInvites || []}
+                            isDark={isDark}
+                            onAccept={sharingHook.acceptInvite}
+                            onReject={sharingHook.rejectInvite}
+                        />
+                    )}
 
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
