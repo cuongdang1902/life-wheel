@@ -114,7 +114,7 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
                         onClick={handleManualSave}
                         className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors"
                     >
-                        💾 Lưu
+                        Lưu
                     </button>
                 </div>
             </div>
@@ -199,7 +199,10 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
             </div>
 
             <footer className={`text-center mt-10 md:mt-12 mb-10 text-xs md:text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                <p>🎡 Life Wheel - Đánh giá cân bằng cuộc sống</p>
+                <p className="flex items-center justify-center gap-1.5">
+                    <img src="/wheel-of-life.ico" alt="Life Wheel" className="w-4 h-4 object-contain inline-block" />
+                    Life Wheel - Đánh giá cân bằng cuộc sống
+                </p>
             </footer>
         </div>
     )

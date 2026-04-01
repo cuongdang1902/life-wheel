@@ -79,15 +79,18 @@ export default function BucketListItem({ item, isDark, onUpdate, onDelete, onTog
               placeholder="Mô tả thêm (tuỳ chọn)..."
               className={`w-full px-2 py-1 rounded-lg border text-xs ${isDark ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-slate-300 text-slate-800'} outline-none`}
             />
-            {/* Area picker */}
-            <div className="flex flex-wrap gap-1">
-              <button onClick={() => setAreaVal('')} className={`px-2 py-0.5 rounded text-xs border transition-colors ${!areaVal ? 'bg-indigo-600 border-indigo-600 text-white' : isDark ? 'border-slate-600 text-slate-400' : 'border-slate-300 text-slate-500'}`}>—</button>
-              {AREAS.map(a => (
-                <button key={a.id} onClick={() => setAreaVal(a.id)}
-                  className={`px-2 py-0.5 rounded text-xs border transition-all ${areaVal === a.id ? 'text-white' : isDark ? 'border-slate-600 text-slate-400 hover:border-slate-400' : 'border-slate-200 text-slate-500'}`}
-                  style={areaVal === a.id ? { backgroundColor: a.color, borderColor: a.color } : {}}
-                >{a.name.split(' ')[0]}</button>
-              ))}
+            {/* Area picker — dropdown với tên đầy đủ */}
+            <div className="relative">
+              <select
+                value={areaVal}
+                onChange={e => setAreaVal(e.target.value)}
+                className={`w-full appearance-none px-2 py-1 rounded-lg border text-xs outline-none transition-colors ${isDark ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-800'}`}
+              >
+                <option value="">— Không chọn lĩnh vực —</option>
+                {AREAS.map(a => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-2">
               <button onClick={handleSave} className="px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs hover:bg-indigo-500 transition-colors">Lưu</button>
@@ -110,7 +113,7 @@ export default function BucketListItem({ item, isDark, onUpdate, onDelete, onTog
                 <div className="flex items-center gap-2 mt-1">
                   {area && (
                     <span className="text-xs px-1.5 py-0.5 rounded-full font-medium text-white" style={{ backgroundColor: area.color + 'cc' }}>
-                      {area.name.split(' ')[0]}
+                      {area.name}
                     </span>
                   )}
                   {isCompleted && item.completed_at && (

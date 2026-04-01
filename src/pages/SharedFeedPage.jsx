@@ -1,16 +1,17 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useTheme } from '../features/theme/ThemeContext'
 import ShareModal from '../features/sharing/ShareModal'
 import DreamBoardCard from '../features/dreamboard/DreamBoardCard'
 import BucketListItem from '../features/bucketlist/BucketListItem'
+import NavIcon from '../shared/components/NavIcon'
 
 const FEATURE_LABELS = {
-  wheel: '🎡 Life Wheel',
-  dreamboard: '🌟 Dream Board',
-  bucketlist: '📋 Bucket List',
+  wheel:      'Life Wheel',
+  dreamboard: 'Dream Board',
+  bucketlist: 'Bucket List',
 }
 
-const TAB_ICONS = { wheel: '🎡', dreamboard: '🌟', bucketlist: '📋' }
+const TAB_ICONS = { wheel: 'wheel', dreamboard: 'dreams', bucketlist: 'bucketlist' }
 
 export default function SharedFeedPage({
   sharingHook,
@@ -36,8 +37,8 @@ export default function SharedFeedPage({
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            👥 Bạn bè
+          <h1 className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            <NavIcon id="friends" size="w-7 h-7" /> Bạn bè
           </h1>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Xem Life Wheel, Dream Board và Bucket List của bạn bè
@@ -85,8 +86,10 @@ export default function SharedFeedPage({
                       }`}
                   >
                     <div className="text-sm font-medium truncate">👤 {name}</div>
-                    <div className={`text-xs mt-0.5 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
-                      {f.features.map(fid => TAB_ICONS[fid]).join(' ')}
+                    <div className="flex items-center gap-1 text-xs mt-0.5">
+                      {f.features.map(fid => (
+                        <NavIcon key={fid} id={TAB_ICONS[fid]} size="w-3.5 h-3.5" />
+                      ))}
                     </div>
                   </button>
                 )
@@ -108,24 +111,27 @@ export default function SharedFeedPage({
                     <button
                       key={fid}
                       onClick={() => setActiveTab(fid)}
-                      className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === fid
+                      className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors ${activeTab === fid
                         ? 'bg-indigo-600 text-white'
                         : isDark ? 'bg-slate-700 text-slate-300 hover:bg-slate-600' : 'bg-white text-slate-600 hover:bg-slate-50'
                         }`}
                     >
+                      <NavIcon id={TAB_ICONS[fid]} size="w-4 h-4" />
                       {FEATURE_LABELS[fid]}
                     </button>
                   ))}
                 </div>
 
                 {/* Read-only content label */}
-                <div className={`px-4 py-2 rounded-xl text-xs mb-4 ${isDark ? 'bg-slate-700/50 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
-                  👁 Bạn đang xem nội dung của <strong>{friendName}</strong> — chỉ đọc
+                <div className={`px-4 py-2 rounded-xl text-xs mb-4 flex items-center gap-1.5 ${isDark ? 'bg-slate-700/50 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
+                  <NavIcon id={TAB_ICONS[activeTab]} size="w-3.5 h-3.5" /> Bạn đang xem nội dung của <strong>{friendName}</strong> — chỉ đọc
                 </div>
 
                 {/* Placeholder content */}
                 <div className={`text-center py-12 rounded-2xl border ${isDark ? 'border-slate-700 border-dashed' : 'border-slate-200 border-dashed'}`}>
-                  <div className="text-4xl mb-3">{TAB_ICONS[activeTab]}</div>
+                  <div className="flex justify-center mb-3">
+                    <NavIcon id={TAB_ICONS[activeTab]} size="w-10 h-10" />
+                  </div>
                   <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     Đang tải {FEATURE_LABELS[activeTab]} của {friendName}...
                   </p>
@@ -151,3 +157,4 @@ export default function SharedFeedPage({
     </div>
   )
 }
+

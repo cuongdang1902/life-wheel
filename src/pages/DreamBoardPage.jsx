@@ -3,6 +3,7 @@ import { useAuth } from '../features/auth/AuthContext'
 import { useTheme } from '../features/theme/ThemeContext'
 import DreamBoardCard from '../features/dreamboard/DreamBoardCard'
 import AddDreamModal from '../features/dreamboard/AddDreamModal'
+import NavIcon from '../shared/components/NavIcon'
 
 export default function DreamBoardPage({ items, loading, addItem, updateItem, deleteItem, toggleAchieved }) {
   const { isDark } = useTheme()
@@ -59,8 +60,8 @@ export default function DreamBoardPage({ items, loading, addItem, updateItem, de
       <div className="mb-6">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              🌟 Dream Board
+            <h1 className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+              <NavIcon id="dreams" size="w-7 h-7" /> Dream Board
             </h1>
             <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Bảng ước mơ trực quan — hình ảnh hoá những điều bạn khao khát

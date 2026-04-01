@@ -2,6 +2,7 @@ import { useState, useMemo, Fragment } from 'react'
 import { AREAS } from '../features/wheel/LifeWheel'
 import ReviewStatus from '../features/goals/ReviewStatus'
 import ReviewPanel from '../features/goals/ReviewPanel'
+import NavIcon from '../shared/components/NavIcon'
 
 // Helpers để tạo period key
 const currentDate = new Date()
@@ -182,8 +183,8 @@ export default function GoalsPage({
       }`}>
       {/* Header */}
       <div className={`p-6 border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
-        <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-          🎯 Goals (OKR)
+        <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+          <NavIcon id="goals" size="w-6 h-6" /> Goals (OKR)
         </h2>
         <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
           Đặt mục tiêu phân cấp: Năm → Quý → Tháng
@@ -308,7 +309,7 @@ export default function GoalsPage({
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                🎯 Mục tiêu {viewLevel === 'year' ? 'Năm' : viewLevel === 'quarter' ? 'Quý' : 'Tháng'}
+                <NavIcon id="goals" size="w-4 h-4" className="inline-block mr-1" /> Mục tiêu {viewLevel === 'year' ? 'Năm' : viewLevel === 'quarter' ? 'Quý' : 'Tháng'}
               </h3>
               {currentGoal.review && <ReviewStatus status={currentGoal.review.status} isDark={isDark} />}
             </div>
@@ -407,7 +408,7 @@ export default function GoalsPage({
         {viewLevel === 'year' && (
           <div>
             <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              📋 Mục tiêu các Quý trong năm {selectedYear}
+              <NavIcon id="goals" size="w-4 h-4" className="inline-block mr-1" /> Mục tiêu các Quý trong năm {selectedYear}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {QUARTERS.map(q => {
@@ -465,7 +466,7 @@ export default function GoalsPage({
         {viewLevel === 'quarter' && (
           <div>
             <h3 className={`font-semibold mb-3 ${isDark ? 'text-white' : 'text-slate-800'}`}>
-              📋 Mục tiêu các Tháng trong Quý {selectedQuarter}/{selectedYear}
+              <NavIcon id="goals" size="w-4 h-4" className="inline-block mr-1" /> Mục tiêu các Tháng trong Quý {selectedQuarter}/{selectedYear}
             </h3>
             <div className="space-y-3">
               {MONTHS_IN_QUARTER[selectedQuarter].map(m => {
@@ -542,7 +543,7 @@ export default function GoalsPage({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                📋 Sub-goals (Mục tiêu con)
+                <NavIcon id="bucketlist" size="w-4 h-4" className="inline-block mr-1" /> Sub-goals (Mục tiêu con)
                 <span className={`text-sm font-normal ml-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   {currentGoal.subGoals.length}/3
                 </span>

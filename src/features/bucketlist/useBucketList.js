@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../shared/lib/supabase'
 
 const STORAGE_KEY = 'life-wheel-bucketlist'
-const DEFAULT_COUNT = 12
+const DEFAULT_COUNT = 1
 
 /**
  * Generate an array of empty bucket items for a given year.

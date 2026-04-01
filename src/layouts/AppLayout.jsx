@@ -7,13 +7,13 @@ import { useState, useRef, useEffect } from 'react'
 
 // Bottom Navigation items
 const NAV_ITEMS = [
-    { to: '/', icon: '🎡', label: 'Wheel' },
-    { to: '/charts', icon: '📈', label: 'Charts' },
-    { to: '/goals', icon: '🎯', label: 'Goals' },
-    { to: '/dashboard', icon: '📈', label: 'Dashboard' },
-    { to: '/dream-board', icon: '🌟', label: 'Dreams' },
-    { to: '/bucket-list', icon: '📋', label: 'Bucket List' },
-    { to: '/friends', icon: '👥', label: 'Friends' },
+    { to: '/', imgIcon: '/wheel-of-life.ico', label: 'Wheel' },
+    { to: '/charts', imgIcon: '/icons/Charts.ico', label: 'Charts' },
+    { to: '/goals', imgIcon: '/icons/Goals.png', label: 'Goals' },
+    { to: '/dashboard', imgIcon: '/icons/Dashboard.ico', label: 'Dashboard' },
+    { to: '/dream-board', imgIcon: '/icons/Dreams.ico', label: 'Dreams' },
+    { to: '/bucket-list', imgIcon: '/icons/bucket-list.ico', label: 'Bucket List' },
+    { to: '/friends', imgIcon: '/icons/Friends.ico', label: 'Friends' },
 ]
 
 export default function AppLayout({ children, onOpenAuth, sharingHook }) {
@@ -52,7 +52,7 @@ export default function AppLayout({ children, onOpenAuth, sharingHook }) {
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 font-bold text-lg">
-                    <span>🎡</span>
+                    <img src="/wheel-of-life.ico" alt="Life Wheel" className="w-8 h-8 object-contain" />
                     <span className={`bg-clip-text text-transparent bg-gradient-to-r ${isDark ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'
                         }`}>Life Wheel</span>
                 </div>
@@ -144,7 +144,10 @@ export default function AppLayout({ children, onOpenAuth, sharingHook }) {
                                     }`
                                 }
                             >
-                                <span className="text-2xl">{item.icon}</span>
+                                {item.imgIcon
+                                    ? <img src={item.imgIcon} alt={item.label} className="w-7 h-7 object-contain" />
+                                    : <span className="text-2xl">{item.icon}</span>
+                                }
                                 <span className="text-base">{item.label}</span>
                             </NavLink>
                         ))}
@@ -172,7 +175,10 @@ export default function AppLayout({ children, onOpenAuth, sharingHook }) {
                             }`
                         }
                     >
-                        <span className="text-xl">{item.icon}</span>
+                        {item.imgIcon
+                            ? <img src={item.imgIcon} alt={item.label} className="w-6 h-6 object-contain" />
+                            : <span className="text-xl">{item.icon}</span>
+                        }
                         <span>{item.label}</span>
                     </NavLink>
                 ))}

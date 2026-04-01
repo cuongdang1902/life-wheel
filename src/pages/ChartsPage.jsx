@@ -3,6 +3,7 @@ import { useTheme } from '../features/theme/ThemeContext'
 import TrendChart from '../features/snapshots/TrendChart'
 import { AREAS } from '../features/wheel/LifeWheel'
 import { formatDate } from '../features/snapshots/useSnapshots'
+import NavIcon from '../shared/components/NavIcon'
 
 const CUR_YEAR = new Date().getFullYear()
 const YEARS = Array.from({ length: 21 }, (_, i) => 2022 + i) // 2022–2042
@@ -58,7 +59,7 @@ export default function ChartsPage({ snapshots, onDelete, onDeleteByPeriod }) {
       {/* Header */}
       <div className="mb-6 flex items-start justify-between flex-wrap gap-4">
         <div>
-          <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>📈 Charts</h1>
+          <h1 className={`text-2xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}><NavIcon id="charts" size="w-7 h-7" /> Charts</h1>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Xu hướng điểm số Life Wheel theo thời gian</p>
         </div>
         <div className="flex gap-3">
