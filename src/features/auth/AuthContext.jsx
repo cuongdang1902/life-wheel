@@ -78,8 +78,22 @@ export const AuthProvider = ({ children }) => {
 
     return (
         <AuthContext.Provider value={value}>
-            {/* Trong lúc đang check session thì có thể hiện màn hình loading mờ nếu muốn */}
-            {!isLoading && children}
+            {isLoading
+                ? (
+                    <div style={{
+                        minHeight: '100vh', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', background: '#0f172a'
+                    }}>
+                        <div style={{
+                            width: 40, height: 40, border: '3px solid #334155',
+                            borderTop: '3px solid #6366f1', borderRadius: '50%',
+                            animation: 'spin 0.8s linear infinite'
+                        }} />
+                        <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
+                    </div>
+                )
+                : children
+            }
         </AuthContext.Provider>
     )
 }
