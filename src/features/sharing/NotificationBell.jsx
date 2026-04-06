@@ -43,12 +43,20 @@ export default function NotificationBell({ pendingInvites, isDark, onAccept, onR
           ) : (
             <div className="divide-y divide-slate-700/30 max-h-72 overflow-y-auto">
               {pendingInvites.map(invite => {
-                const fromName = invite.owner?.full_name || invite.owner?.email || '...'
+                const fromName = invite.owner?.full_name || 'Người dùng ẩn danh'
+                const fromEmail = invite.owner?.email || '...'
                 return (
                   <div key={invite.id} className={`px-4 py-3 ${isDark ? 'hover:bg-slate-700/30' : 'hover:bg-slate-50'}`}>
-                    <p className={`text-sm font-medium mb-0.5 ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>
-                      👤 {fromName}
-                    </p>
+                    <div className="mb-1.5 flex flex-col gap-0.5">
+                      <p className={`text-sm font-medium leading-tight ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>
+                        👤 {fromName}
+                      </p>
+                      {fromEmail !== '...' && (
+                        <p className={`text-xs leading-tight ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          ✉️ {fromEmail}
+                        </p>
+                      )}
+                    </div>
                     <p className={`text-xs mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       muốn chia sẻ {FEATURE_LABEL[invite.feature] || invite.feature} với bạn
                     </p>
