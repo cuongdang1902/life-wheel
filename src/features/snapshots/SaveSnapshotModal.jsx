@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { PERIODS } from '../hooks/useSnapshots'
+import { PERIODS } from './useSnapshots'
 
 export default function SaveSnapshotModal({ isOpen, onClose, onSave, isDark = true }) {
   const [selectedPeriod, setSelectedPeriod] = useState('month')
