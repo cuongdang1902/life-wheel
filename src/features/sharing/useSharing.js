@@ -55,7 +55,7 @@ export default function useSharing() {
     const { data: targetUser, error: lookupError } = await supabase
       .from('profiles')
       .select('id')
-      .eq('email', email)
+      .ilike('email', email)
       .maybeSingle()
     
     // Fallback: try auth admin (not available client-side)

@@ -104,18 +104,13 @@ export default function ChartsPage({ snapshots, onDelete, onDeleteByPeriod }) {
         {chartMode === 'year' && (
           <div>
             <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Chọn năm</p>
-            <div className="flex flex-wrap gap-1.5">
-              {YEARS.map(y => (
-                <button
-                  key={y}
-                  onClick={() => setSelectedYear(y)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border ${selectedYear === y
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : isDark ? 'bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600' : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
-                    }`}
-                >{y}</button>
-              ))}
-            </div>
+            <select
+              value={selectedYear}
+              onChange={e => setSelectedYear(Number(e.target.value))}
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium border ${isDark ? 'bg-slate-700 text-white border-slate-600' : 'bg-white text-slate-700 border-slate-300'}`}
+            >
+              {YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
           </div>
         )}
 
