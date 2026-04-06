@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useTheme } from '../features/theme/ThemeContext'
 import ShareModal from '../features/sharing/ShareModal'
 import DreamBoardCard from '../features/dreamboard/DreamBoardCard'
@@ -30,7 +30,7 @@ export default function SharedFeedPage({
   const availableTabs = friend?.features || []
 
   // Placeholder for friend data (in a real implementation, fetch from Supabase with RLS)
-  const friendName = friend?.owner?.raw_user_meta_data?.full_name || friend?.owner?.email || '...'
+  const friendName = friend?.owner?.full_name || friend?.owner?.email || '...'
 
   return (
     <div className="w-full">
@@ -74,7 +74,7 @@ export default function SharedFeedPage({
             </div>
             <div className="divide-y divide-slate-700/30">
               {friendsSharedWithMe.map(f => {
-                const name = f.owner?.raw_user_meta_data?.full_name || f.owner?.email || '...'
+                const name = f.owner?.full_name || f.owner?.email || '...'
                 const isSelected = selectedFriend === f.id
                 return (
                   <button

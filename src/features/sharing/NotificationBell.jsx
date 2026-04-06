@@ -43,7 +43,7 @@ export default function NotificationBell({ pendingInvites, isDark, onAccept, onR
           ) : (
             <div className="divide-y divide-slate-700/30 max-h-72 overflow-y-auto">
               {pendingInvites.map(invite => {
-                const fromName = invite.owner?.raw_user_meta_data?.full_name || invite.owner?.email || '...'
+                const fromName = invite.owner?.full_name || invite.owner?.email || '...'
                 return (
                   <div key={invite.id} className={`px-4 py-3 ${isDark ? 'hover:bg-slate-700/30' : 'hover:bg-slate-50'}`}>
                     <p className={`text-sm font-medium mb-0.5 ${isDark ? 'text-slate-100' : 'text-slate-800'}`}>

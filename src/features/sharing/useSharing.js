@@ -25,8 +25,8 @@ export default function useSharing() {
       .from('shares')
       .select(`
         *,
-        owner:owner_id ( id, email, raw_user_meta_data ),
-        recipient:shared_with_id ( id, email, raw_user_meta_data )
+        owner:owner_id ( id, email, full_name, avatar_url ),
+        recipient:shared_with_id ( id, email, full_name, avatar_url )
       `)
       .or(`owner_id.eq.${uid},shared_with_id.eq.${uid}`)
       .order('created_at', { ascending: false })

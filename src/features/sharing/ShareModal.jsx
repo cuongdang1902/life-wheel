@@ -99,7 +99,7 @@ export default function ShareModal({ isOpen, onClose, isDark, myShares, onSendIn
               <label className={`block text-sm font-semibold mb-3 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>Đã chia sẻ với</label>
               <div className="space-y-3">
                 {Object.values(grouped).map(group => {
-                  const name = group.recipient?.raw_user_meta_data?.full_name || group.recipient?.email || '...'
+                  const name = group.recipient?.full_name || group.recipient?.email || '...'
                   return (
                     <div key={group.id} className={`p-3 rounded-xl border ${isDark ? 'border-slate-700 bg-slate-700/30' : 'border-slate-200 bg-slate-50'}`}>
                       <div className="flex items-center justify-between mb-2">
