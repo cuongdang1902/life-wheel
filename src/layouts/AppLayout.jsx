@@ -2,17 +2,21 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useTheme } from '../features/theme/ThemeContext'
 import { useAuth } from '../features/auth/AuthContext'
 import ThemeToggle from '../features/theme/ThemeToggle'
+import NotificationBell from '../features/sharing/NotificationBell'
 import { useState, useRef, useEffect } from 'react'
 
 // Bottom Navigation items
 const NAV_ITEMS = [
-    { to: '/', icon: '🎡', label: 'Wheel' },
-    { to: '/snapshots', icon: '📊', label: 'Snapshots' },
-    { to: '/goals', icon: '🎯', label: 'Goals' },
-    { to: '/dashboard', icon: '📈', label: 'Dashboard' },
+    { to: '/', imgIcon: '/wheel-of-life.ico', label: 'Wheel' },
+    { to: '/charts', imgIcon: '/icons/Charts.ico', label: 'Charts' },
+    { to: '/goals', imgIcon: '/icons/Goals.png', label: 'Goals' },
+    { to: '/dashboard', imgIcon: '/icons/Dashboard.ico', label: 'Dashboard' },
+    { to: '/dream-board', imgIcon: '/icons/Dreams.ico', label: 'Dreams' },
+    { to: '/bucket-list', imgIcon: '/icons/bucket-list.ico', label: 'Bucket List' },
+    { to: '/friends', imgIcon: '/icons/Friends.ico', label: 'Friends' },
 ]
 
-export default function AppLayout({ children, onOpenAuth }) {
+export default function AppLayout({ children, onOpenAuth, sharingHook }) {
     const { isDark } = useTheme()
     const { user, signOut } = useAuth()
     const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -48,14 +52,24 @@ export default function AppLayout({ children, onOpenAuth }) {
 
                 {/* Logo */}
                 <div className="flex items-center gap-2 font-bold text-lg">
-                    <span>🎡</span>
+                    <img src="/wheel-of-life.ico" alt="Life Wheel" className="w-8 h-8 object-contain" />
                     <span className={`bg-clip-text text-transparent bg-gradient-to-r ${isDark ? 'from-indigo-400 to-purple-400' : 'from-indigo-600 to-purple-600'
                         }`}>Life Wheel</span>
                 </div>
 
                 {/* Right controls */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                     <ThemeToggle />
+
+                    {/* Notification Bell — only for logged-in users */}
+                    {user && sharingHook && (
+                        <NotificationBell
+                            pendingInvites={sharingHook.pendingInvites || []}
+                            isDark={isDark}
+                            onAccept={sharingHook.acceptInvite}
+                            onReject={sharingHook.rejectInvite}
+                        />
+                    )}
 
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
@@ -130,7 +144,10 @@ export default function AppLayout({ children, onOpenAuth }) {
                                     }`
                                 }
                             >
-                                <span className="text-2xl">{item.icon}</span>
+                                {item.imgIcon
+                                    ? <img src={item.imgIcon} alt={item.label} className="w-7 h-7 object-contain" />
+                                    : <span className="text-2xl">{item.icon}</span>
+                                }
                                 <span className="text-base">{item.label}</span>
                             </NavLink>
                         ))}
@@ -158,7 +175,10 @@ export default function AppLayout({ children, onOpenAuth }) {
                             }`
                         }
                     >
-                        <span className="text-xl">{item.icon}</span>
+                        {item.imgIcon
+                            ? <img src={item.imgIcon} alt={item.label} className="w-6 h-6 object-contain" />
+                            : <span className="text-xl">{item.icon}</span>
+                        }
                         <span>{item.label}</span>
                     </NavLink>
                 ))}

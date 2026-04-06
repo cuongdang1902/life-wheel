@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { AREAS } from '../features/wheel/LifeWheel'
+import NavIcon from '../shared/components/NavIcon'
 
 const currentDate = new Date()
 const currentYear = currentDate.getFullYear()
@@ -68,8 +69,8 @@ export default function DashboardPage({
       {/* Header */}
       <div className={`p-6 border-b flex justify-between items-center ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         <div>
-          <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-            📊 Goals Dashboard
+          <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            <NavIcon id="dashboard" size="w-6 h-6" /> Goals Dashboard
           </h2>
           <p className={`text-sm mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Theo dõi tiến độ mục tiêu Quý {selectedQuarter}/{selectedYear}
@@ -180,7 +181,7 @@ export default function DashboardPage({
                     </div>
                     {goal.objective ? (
                       <div className={`text-xs mb-1 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-                        🎯 {goal.objective}
+                        <NavIcon id="goals" size="w-3.5 h-3.5" /> {goal.objective}
                       </div>
                     ) : (
                       <div className={`text-xs italic mb-1 ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>

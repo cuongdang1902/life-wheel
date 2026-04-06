@@ -1,23 +1,28 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 
 // Features
-import LifeWheel, { AREAS } from './features/wheel/LifeWheel'
+import { AREAS } from './features/wheel/LifeWheel'
 import ExportModal from './features/wheel/ExportModal'
-import SaveSnapshotModal from './features/snapshots/SaveSnapshotModal'
 import AuthModal from './features/auth/AuthModal'
 
 // Pages
 import HomePage from './pages/HomePage'
-import SnapshotsPage from './pages/SnapshotsPage'
+import ChartsPage from './pages/ChartsPage'
 import GoalsPage from './pages/GoalsPage'
 import DashboardPage from './pages/DashboardPage'
+import DreamBoardPage from './pages/DreamBoardPage'
+import BucketListPage from './pages/BucketListPage'
+import SharedFeedPage from './pages/SharedFeedPage'
 
 // Hooks
 import useSnapshots from './features/snapshots/useSnapshots'
 import useGoals from './features/goals/useGoals'
 import useReminder from './features/reminder/useReminder'
+import useDreamBoard from './features/dreamboard/useDreamBoard'
+import useBucketList from './features/bucketlist/useBucketList'
+import useSharing from './features/sharing/useSharing'
 import { useTheme } from './features/theme/ThemeContext'
 import { useAuth } from './features/auth/AuthContext'
 
@@ -27,47 +32,21 @@ function App() {
   const { isDark } = useTheme()
   const { user } = useAuth()
 
+  // scores is kept here only for ExportModal — synced via onScoresChange from HomePage
   const [scores, setScores] = useState(
     AREAS.reduce((acc, area) => ({ ...acc, [area.id]: 5 }), {})
   )
 
-  const [showSaveModal, setShowSaveModal] = useState(false)
   const [showExportModal, setShowExportModal] = useState(false)
   const [showAuthModal, setShowAuthModal] = useState(false)
-
-  const [compareEnabled, setCompareEnabled] = useState(false)
-  const [selectedSnapshotId, setSelectedSnapshotId] = useState(null)
   const [toast, setToast] = useState(null)
 
   const snapshotsHook = useSnapshots()
   const goalsHook = useGoals()
   const reminderHook = useReminder()
-
-  const comparisonScores = useCallback(() => {
-    if (!compareEnabled) return null
-    if (selectedSnapshotId) {
-      const snapshot = snapshotsHook.getSnapshotById(selectedSnapshotId)
-      if (snapshot) return snapshot.scores
-    }
-    const latest = snapshotsHook.getLatestSnapshot()
-    return latest?.scores || null
-  }, [compareEnabled, selectedSnapshotId, snapshotsHook])
-
-  // Auto-clear selectedSnapshotId nếu nó không còn tồn tại
-  useEffect(() => {
-    if (selectedSnapshotId && !snapshotsHook.getSnapshotById(selectedSnapshotId)) {
-      setSelectedSnapshotId(null)
-    }
-  }, [snapshotsHook.snapshots, selectedSnapshotId, snapshotsHook])
-
-  const handleScoreChange = (areaId, value) => {
-    setScores(prev => ({ ...prev, [areaId]: Number(value) }))
-  }
-
-  const handleSaveSnapshot = (period) => {
-    snapshotsHook.addSnapshot(scores, period)
-    showToast('✅ Đã lưu snapshot thành công!')
-  }
+  const dreamBoardHook = useDreamBoard()
+  const bucketListHook = useBucketList()
+  const sharingHook = useSharing()
 
   const handleDeleteSnapshot = (id) => {
     snapshotsHook.deleteSnapshot(id)
@@ -76,7 +55,7 @@ function App() {
 
   const handleDeleteByPeriod = (period) => {
     snapshotsHook.deleteByPeriod(period)
-    showToast(`🗑️ Đã xóa tất cả snapshot (${period})`)
+    showToast(`🗑️ Đã xóa snapshot (${period})`)
   }
 
   const showToast = (message) => {
@@ -86,33 +65,21 @@ function App() {
 
   return (
     <>
-      <AppLayout onOpenAuth={() => setShowAuthModal(true)}>
+      <AppLayout onOpenAuth={() => setShowAuthModal(true)} sharingHook={sharingHook}>
         <Routes>
           <Route path="/" element={
             <HomePage
-              scores={scores}
-              handleScoreChange={handleScoreChange}
-              comparisonScores={comparisonScores}
-              compareEnabled={compareEnabled}
-              setCompareEnabled={setCompareEnabled}
-              selectedSnapshotId={selectedSnapshotId}
-              snapshotsCount={snapshotsHook.snapshots.length}
-              onSaveSnapshot={() => setShowSaveModal(true)}
+              snapshotsHook={snapshotsHook}
+              onScoresChange={setScores}
               onExport={() => setShowExportModal(true)}
               isDark={isDark}
             />
           } />
-          <Route path="/snapshots" element={
-            <SnapshotsPage
+          <Route path="/charts" element={
+            <ChartsPage
               snapshots={snapshotsHook.snapshots}
               onDelete={handleDeleteSnapshot}
               onDeleteByPeriod={handleDeleteByPeriod}
-              selectedSnapshotId={selectedSnapshotId}
-              onSelectSnapshot={setSelectedSnapshotId}
-              compareEnabled={compareEnabled}
-              onToggleCompare={setCompareEnabled}
-              isDark={isDark}
-              reminder={reminderHook}
             />
           } />
           <Route path="/goals" element={
@@ -129,16 +96,26 @@ function App() {
               isDark={isDark}
             />
           } />
+          <Route path="/dream-board" element={
+            <DreamBoardPage
+              {...dreamBoardHook}
+              isDark={isDark}
+            />
+          } />
+          <Route path="/bucket-list" element={
+            <BucketListPage
+              {...bucketListHook}
+              isDark={isDark}
+            />
+          } />
+          <Route path="/friends" element={
+            <SharedFeedPage
+              sharingHook={sharingHook}
+              isDark={isDark}
+            />
+          } />
         </Routes>
       </AppLayout>
-
-      {/* Modals keeping global state */}
-      <SaveSnapshotModal
-        isOpen={showSaveModal}
-        onClose={() => setShowSaveModal(false)}
-        onSave={handleSaveSnapshot}
-        isDark={isDark}
-      />
 
       <ExportModal
         isOpen={showExportModal}
