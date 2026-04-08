@@ -15,6 +15,7 @@ import DashboardPage from './pages/DashboardPage'
 import DreamBoardPage from './pages/DreamBoardPage'
 import BucketListPage from './pages/BucketListPage'
 import SharedFeedPage from './pages/SharedFeedPage'
+import YearReviewPage from './features/yearreview/YearReviewPage'
 
 // Hooks
 import useSnapshots from './features/snapshots/useSnapshots'
@@ -23,6 +24,7 @@ import useReminder from './features/reminder/useReminder'
 import useDreamBoard from './features/dreamboard/useDreamBoard'
 import useBucketList from './features/bucketlist/useBucketList'
 import useSharing from './features/sharing/useSharing'
+import useYearReview from './features/yearreview/useYearReview'
 import { useTheme } from './features/theme/ThemeContext'
 import { useAuth } from './features/auth/AuthContext'
 
@@ -47,6 +49,7 @@ function App() {
   const dreamBoardHook = useDreamBoard()
   const bucketListHook = useBucketList()
   const sharingHook = useSharing()
+  const yearReviewHook = useYearReview()
 
   const handleDeleteSnapshot = (id) => {
     snapshotsHook.deleteSnapshot(id)
@@ -112,6 +115,12 @@ function App() {
             <SharedFeedPage
               sharingHook={sharingHook}
               isDark={isDark}
+            />
+          } />
+          <Route path="/year-review" element={
+            <YearReviewPage
+              isDark={isDark}
+              useYearReviewHook={yearReviewHook}
             />
           } />
         </Routes>
