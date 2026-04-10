@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 
 // Features
@@ -15,7 +15,11 @@ import DashboardPage from './pages/DashboardPage'
 import DreamBoardPage from './pages/DreamBoardPage'
 import BucketListPage from './pages/BucketListPage'
 import SharedFeedPage from './pages/SharedFeedPage'
+import ReviewHubPage from './pages/ReviewHubPage'
 import YearReviewPage from './features/yearreview/YearReviewPage'
+import MonthlyReviewPage from './features/monthlyreview/MonthlyReviewPage'
+import QuarterlyReviewPage from './features/quarterlyreview/QuarterlyReviewPage'
+import WeeklyPlannerPage from './features/weeklyplanner/WeeklyPlannerPage'
 
 // Hooks
 import useSnapshots from './features/snapshots/useSnapshots'
@@ -25,6 +29,9 @@ import useDreamBoard from './features/dreamboard/useDreamBoard'
 import useBucketList from './features/bucketlist/useBucketList'
 import useSharing from './features/sharing/useSharing'
 import useYearReview from './features/yearreview/useYearReview'
+import useMonthlyReview from './features/monthlyreview/useMonthlyReview'
+import useQuarterlyReview from './features/quarterlyreview/useQuarterlyReview'
+import useWeeklyPlanner from './features/weeklyplanner/useWeeklyPlanner'
 import { useTheme } from './features/theme/ThemeContext'
 import { useAuth } from './features/auth/AuthContext'
 
@@ -50,6 +57,9 @@ function App() {
   const bucketListHook = useBucketList()
   const sharingHook = useSharing()
   const yearReviewHook = useYearReview()
+  const monthlyReviewHook = useMonthlyReview()
+  const quarterlyReviewHook = useQuarterlyReview()
+  const weeklyPlannerHook = useWeeklyPlanner()
 
   const handleDeleteSnapshot = (id) => {
     snapshotsHook.deleteSnapshot(id)
@@ -117,12 +127,42 @@ function App() {
               isDark={isDark}
             />
           } />
-          <Route path="/year-review" element={
+          {/* Review Hub + sub-routes */}
+          <Route path="/review" element={
+            <ReviewHubPage
+              isDark={isDark}
+              weeklyPlannerHook={weeklyPlannerHook}
+              monthlyReviewHook={monthlyReviewHook}
+              quarterlyReviewHook={quarterlyReviewHook}
+              yearReviewHook={yearReviewHook}
+            />
+          } />
+          <Route path="/review/weekly" element={
+            <WeeklyPlannerPage
+              weeklyPlannerHook={weeklyPlannerHook}
+              isDark={isDark}
+            />
+          } />
+          <Route path="/review/monthly" element={
+            <MonthlyReviewPage
+              isDark={isDark}
+              monthlyReviewHook={monthlyReviewHook}
+            />
+          } />
+          <Route path="/review/quarterly" element={
+            <QuarterlyReviewPage
+              isDark={isDark}
+              quarterlyReviewHook={quarterlyReviewHook}
+            />
+          } />
+          <Route path="/review/yearly" element={
             <YearReviewPage
               isDark={isDark}
               useYearReviewHook={yearReviewHook}
             />
           } />
+          {/* Backward compat redirect */}
+          <Route path="/year-review" element={<Navigate to="/review/yearly" replace />} />
         </Routes>
       </AppLayout>
 
