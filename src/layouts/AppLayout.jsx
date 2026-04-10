@@ -14,7 +14,7 @@ const NAV_ITEMS = [
     { to: '/dream-board', imgIcon: '/icons/Dreams.ico', label: 'Dreams' },
     { to: '/bucket-list', imgIcon: '/icons/bucket-list.ico', label: 'Bucket List' },
     { to: '/friends', imgIcon: '/icons/Friends.ico', label: 'Friends' },
-    { to: '/year-review', icon: '📖', label: 'Year Review' },
+    { to: '/review', icon: '📝', label: 'Review' },
 ]
 
 export default function AppLayout({ children, onOpenAuth, sharingHook }) {

@@ -21,6 +21,7 @@ const FALLBACK = {
   dreams:     '🌟',
   bucketlist: '📋',
   friends:    '👥',
+  review:     '📝',
 }
 
 /**

@@ -1,0 +1,189 @@
+import { useState, useMemo } from 'react'
+import { QUARTERLY_QUESTIONS, QUARTERLY_CATEGORIES, TOTAL_QUARTERLY_QUESTIONS } from './quarterlyQuestions'
+import QuestionCard from '../yearreview/QuestionCard'
+
+const CURRENT_YEAR = new Date().getFullYear()
+const CURRENT_QUARTER = Math.ceil((new Date().getMonth() + 1) / 3)
+const YEAR_OPTIONS = Array.from({ length: 11 }, (_, i) => 2024 + i)
+const QUARTERS = [1, 2, 3, 4]
+
+const CAT_LIST = [
+  QUARTERLY_CATEGORIES.EVALUATE,
+  QUARTERLY_CATEGORIES.ANALYZE,
+  QUARTERLY_CATEGORIES.NEXTQTR,
+]
+
+function ProgressRing({ answered, total, size = 60, stroke = 5, color = '#6366f1' }) {
+  const r = (size - stroke * 2) / 2
+  const circ = 2 * Math.PI * r
+  const dash = total > 0 ? (answered / total) * circ : 0
+  return (
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeOpacity={0.15} strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round"
+        style={{ transition: 'stroke-dasharray 0.5s ease' }}
+      />
+    </svg>
+  )
+}
+
+export default function QuarterlyReviewPage({ isDark, quarterlyReviewHook }) {
+  const { getReview, saveAnswer, getProgress, savingStatus, loading } = quarterlyReviewHook
+
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
+  const [selectedQuarter, setSelectedQuarter] = useState(CURRENT_QUARTER)
+  const [activeCat, setActiveCat] = useState('all')
+
+  const review = getReview(selectedYear, selectedQuarter)
+  const answers = review.answers || {}
+  const progress = getProgress(selectedYear, selectedQuarter)
+  const allDone = progress.answered === TOTAL_QUARTERLY_QUESTIONS
+  const pct = Math.round((progress.answered / TOTAL_QUARTERLY_QUESTIONS) * 100)
+
+  const visibleQuestions = useMemo(() => {
+    if (activeCat === 'all') return QUARTERLY_QUESTIONS
+    return QUARTERLY_QUESTIONS.filter(q => q.category.id === activeCat)
+  }, [activeCat])
+
+  const handleSave = (questionId, text) => saveAnswer(selectedYear, selectedQuarter, questionId, text)
+
+  const textMain = isDark ? 'text-white' : 'text-slate-900'
+  const textMuted = isDark ? 'text-slate-400' : 'text-slate-500'
+
+  return (
+    <div className="max-w-3xl mx-auto">
+
+      {/* ── Header ── */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-3xl">📊</span>
+          <div>
+            <h1 className={`text-2xl font-bold ${textMain}`}>Review Quý</h1>
+            <p className={`text-sm ${textMuted}`}>20 câu hỏi phân tích sâu để tổng kết quý vừa qua</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Quarter + Year Selector ── */}
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <label className={`text-sm font-medium shrink-0 ${textMuted}`}>📅 Chọn quý:</label>
+        <select
+          value={selectedQuarter}
+          onChange={e => { setSelectedQuarter(Number(e.target.value)); setActiveCat('all') }}
+          className={`px-3 py-2 rounded-xl text-sm font-semibold border outline-none cursor-pointer transition-colors ${isDark
+            ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-indigo-500'
+            : 'bg-white border-slate-200 text-slate-800 focus:border-indigo-400 shadow-sm'
+          }`}
+        >
+          {QUARTERS.map(q => (
+            <option key={q} value={q}>
+              Quý {q} {q === CURRENT_QUARTER ? '(Hiện tại)' : ''}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedYear}
+          onChange={e => { setSelectedYear(Number(e.target.value)); setActiveCat('all') }}
+          className={`px-3 py-2 rounded-xl text-sm font-semibold border outline-none cursor-pointer transition-colors ${isDark
+            ? 'bg-slate-800 border-slate-700 text-slate-100 focus:border-indigo-500'
+            : 'bg-white border-slate-200 text-slate-800 focus:border-indigo-400 shadow-sm'
+          }`}
+        >
+          {YEAR_OPTIONS.map(y => (<option key={y} value={y}>{y}</option>))}
+        </select>
+      </div>
+
+      {/* ── Progress Card ── */}
+      <div className={`relative rounded-2xl p-5 mb-6 overflow-hidden border ${allDone
+        ? isDark ? 'bg-gradient-to-r from-indigo-900/60 to-purple-900/60 border-indigo-500/40' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'
+        : isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200'
+      }`}>
+        <div className="flex items-center gap-4">
+          <div className="relative flex-shrink-0">
+            <ProgressRing answered={progress.answered} total={TOTAL_QUARTERLY_QUESTIONS} color={allDone ? '#a855f7' : '#6366f1'} />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className={`text-xs font-bold ${textMain}`}>{allDone ? '🏆' : `${pct}%`}</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            {allDone ? (
+              <>
+                <p className={`text-base font-bold mb-0.5 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>🎉 Hoàn thành review!</p>
+                <p className={`text-sm ${textMuted}`}>Đã trả lời cả 20 câu cho Quý {selectedQuarter}/{selectedYear}</p>
+              </>
+            ) : (
+              <>
+                <p className={`text-base font-bold mb-0.5 ${textMain}`}>{progress.answered}/{TOTAL_QUARTERLY_QUESTIONS} câu đã trả lời</p>
+                <p className={`text-sm ${textMuted}`}>
+                  {progress.answered === 0
+                    ? `Bắt đầu review Quý ${selectedQuarter}/${selectedYear}`
+                    : `Còn ${TOTAL_QUARTERLY_QUESTIONS - progress.answered} câu nữa`
+                  }
+                </p>
+              </>
+            )}
+          </div>
+          <div className="flex-shrink-0">
+            {savingStatus === 'saving' && <span className={`text-xs ${textMuted}`}>💾 Đang lưu...</span>}
+            {savingStatus === 'saved' && <span className="text-xs text-emerald-500">✓ Đã lưu</span>}
+            {savingStatus === 'error' && <span className="text-xs text-red-400">✗ Lỗi</span>}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Category Filter ── */}
+      <div className="flex gap-2 flex-wrap mb-6">
+        <button
+          onClick={() => setActiveCat('all')}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeCat === 'all'
+            ? isDark ? 'bg-slate-600 border-slate-500 text-white' : 'bg-slate-800 border-slate-800 text-white'
+            : isDark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500 bg-white'
+          }`}
+        >Tất cả</button>
+        {CAT_LIST.map(cat => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCat(cat.id)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeCat === cat.id
+              ? 'text-white border-transparent'
+              : isDark ? 'border-slate-700 text-slate-400 hover:border-slate-600' : 'border-slate-200 text-slate-500 bg-white'
+            }`}
+            style={activeCat === cat.id ? { backgroundColor: cat.color } : {}}
+          >
+            {cat.icon} {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Progress bar ── */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className={`flex-1 h-1.5 rounded-full ${isDark ? 'bg-slate-700' : 'bg-slate-200'}`}>
+          <div className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${pct}%`, backgroundColor: '#6366f1' }}
+          />
+        </div>
+        <span className={`text-xs font-medium shrink-0 ${textMuted}`}>
+          {visibleQuestions.filter(q => answers[q.id]?.trim()).length}/{visibleQuestions.length} hiển thị
+        </span>
+      </div>
+
+      {/* ── Questions ── */}
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className={`text-sm ${textMuted}`}>Đang tải...</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {visibleQuestions.map(q => (
+            <QuestionCard key={q.id} question={q} answer={answers[q.id] || ''} onSave={handleSave} isDark={isDark} />
+          ))}
+        </div>
+      )}
+      <div className="h-12" />
+    </div>
+  )
+}
