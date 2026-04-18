@@ -124,10 +124,19 @@ export default function ReviewHubPage({
     {
       icon: '📅',
       title: 'Weekly Planner',
-      description: `Lên kế hoạch & phản tư theo tuần • ${weekRange}`,
+      description: `Lên kế hoạch theo tuần • ${weekRange}`,
       route: '/review/weekly',
       color: '#6366f1',
       progress: { answered: weekProgress.done, total: Math.max(weekProgress.total, 1) },
+      badge: null,
+    },
+    {
+      icon: '🪞',
+      title: 'Review Tuần',
+      description: `Phản tư cuối tuần • ${weekRange}`,
+      route: '/review/weekly-reflection',
+      color: '#06b6d4',
+      progress: null,
       badge: null,
     },
     {

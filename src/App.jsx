@@ -20,6 +20,7 @@ import YearReviewPage from './features/yearreview/YearReviewPage'
 import MonthlyReviewPage from './features/monthlyreview/MonthlyReviewPage'
 import QuarterlyReviewPage from './features/quarterlyreview/QuarterlyReviewPage'
 import WeeklyPlannerPage from './features/weeklyplanner/WeeklyPlannerPage'
+import WeeklyReviewPage from './features/weeklyplanner/WeeklyReviewPage'
 
 // Hooks
 import useSnapshots from './features/snapshots/useSnapshots'
@@ -139,6 +140,12 @@ function App() {
           } />
           <Route path="/review/weekly" element={
             <WeeklyPlannerPage
+              weeklyPlannerHook={weeklyPlannerHook}
+              isDark={isDark}
+            />
+          } />
+          <Route path="/review/weekly-reflection" element={
+            <WeeklyReviewPage
               weeklyPlannerHook={weeklyPlannerHook}
               isDark={isDark}
             />
