@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { MONTHLY_QUESTIONS, MONTHLY_CATEGORIES, TOTAL_MONTHLY_QUESTIONS } from './monthlyQuestions'
 import QuestionCard from '../yearreview/QuestionCard'
 
@@ -32,6 +33,7 @@ function ProgressRing({ answered, total, size = 60, stroke = 5, color = '#6366f1
 }
 
 export default function MonthlyReviewPage({ isDark, monthlyReviewHook }) {
+  const navigate = useNavigate()
   const { getReview, saveAnswer, getProgress, savingStatus, loading } = monthlyReviewHook
 
   const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
@@ -59,6 +61,14 @@ export default function MonthlyReviewPage({ isDark, monthlyReviewHook }) {
 
       {/* ── Header ── */}
       <div className="mb-8">
+        <button
+          onClick={() => navigate('/review')}
+          className={`flex items-center gap-1.5 text-sm mb-4 transition-colors cursor-pointer ${
+            isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-700'
+          }`}
+        >
+          ← Review Hub
+        </button>
         <div className="flex items-center gap-3 mb-2">
           <span className="text-3xl">📆</span>
           <div>

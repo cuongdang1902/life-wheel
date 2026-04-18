@@ -5,7 +5,7 @@ const DAY_LABELS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Th�
 const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 function getDayDate(weekStart, dayIndex) {
-  const d = new Date(weekStart)
+  const d = new Date(weekStart + 'T00:00:00')
   d.setDate(d.getDate() + dayIndex)
   return d
 }
@@ -120,12 +120,12 @@ export function TaskCell({ tasks, onAdd, onToggle, onDelete, isDark }) {
       ) : (
         <button
           onClick={() => setAdding(true)}
-          className={`text-xs transition-colors ${isDark
+          className={`text-xs transition-colors cursor-pointer ${isDark
             ? 'text-slate-600 hover:text-indigo-400'
             : 'text-slate-400 hover:text-indigo-600'
           }`}
         >
-          + thêm task
+          + Thêm việc
         </button>
       )}
     </div>
@@ -151,28 +151,18 @@ export function RoleRow({
 
   return (
     <tr className={`group/row border-b ${borderColor} ${starredBg} transition-colors`}>
-      {/* Star */}
+      {/* Star + delete */}
       <td className={`px-2 py-2 border-r ${borderColor} w-8 align-top`}>
-        <button
-          onClick={() => onToggleStar(role.id)}
-          className="transition-transform hover:scale-110"
-        >
-          {role.star
-            ? <span className="text-amber-400 text-base">★</span>
-            : <span className={`text-base ${isDark ? 'text-slate-600 hover:text-amber-400' : 'text-slate-300 hover:text-amber-400'}`}>☆</span>
-          }
-        </button>
-      </td>
-
-      {/* Role name */}
-      <td className={`px-3 py-2 border-r ${borderColor} w-32 align-top`}>
-        <div className="flex items-center gap-1">
-          <EditableCell
-            value={role.name}
-            onChange={v => onUpdateRole(role.id, { name: v })}
-            placeholder="Vai trò..."
-            className={`font-medium ${textMain}`}
-          />
+        <div className="flex flex-col items-center gap-1">
+          <button
+            onClick={() => onToggleStar(role.id)}
+            className="transition-transform hover:scale-110"
+          >
+            {role.star
+              ? <span className="text-amber-400 text-base">★</span>
+              : <span className={`text-base ${isDark ? 'text-slate-600 hover:text-amber-400' : 'text-slate-300 hover:text-amber-400'}`}>☆</span>
+            }
+          </button>
           <button
             onClick={() => onDeleteRole(role.id)}
             className={`opacity-0 group-hover/row:opacity-100 text-xs flex-shrink-0 transition-opacity ${isDark ? 'text-slate-600 hover:text-red-400' : 'text-slate-300 hover:text-red-400'}`}
@@ -187,16 +177,6 @@ export function RoleRow({
           onChange={v => onUpdateRole(role.id, { goal: v })}
           placeholder="Mục tiêu tuần này..."
           className={textMuted}
-        />
-      </td>
-
-      {/* Notes */}
-      <td className={`px-3 py-2 border-r ${borderColor} w-36 align-top`}>
-        <EditableCell
-          value={role.note}
-          onChange={v => onUpdateRole(role.id, { note: v })}
-          placeholder="Ghi chú..."
-          className={`text-amber-500 dark:text-amber-400`}
         />
       </td>
 

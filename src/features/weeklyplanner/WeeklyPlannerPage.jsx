@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { RoleRow } from './WeeklyPlannerComponents'
-import WeeklyReflection from './WeeklyReflection'
 
 const DAY_LABELS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN']
 
@@ -39,6 +39,7 @@ export default function WeeklyPlannerPage({
   weeklyPlannerHook,
   isDark,
 }) {
+  const navigate = useNavigate()
   const {
     currentWeekStart,
     loading,
@@ -50,11 +51,8 @@ export default function WeeklyPlannerPage({
     toggleStar,
     getTasks,
     addTask,
-    updateTask,
     deleteTask,
     toggleTask,
-    getReflection,
-    saveReflection,
     getWeekProgress,
     goToPrevWeek,
     goToNextWeek,
@@ -62,7 +60,6 @@ export default function WeeklyPlannerPage({
   } = weeklyPlannerHook
 
   const roles = getRoles(currentWeekStart)
-  const reflection = getReflection(currentWeekStart)
   const progress = getWeekProgress(currentWeekStart)
   const weekRange = formatWeekRange(currentWeekStart)
   const isCurrent = isCurrentWeek(currentWeekStart)
@@ -81,11 +78,19 @@ export default function WeeklyPlannerPage({
     <div className="max-w-full">
       {/* ── Page Header ── */}
       <div className="mb-6">
+        <button
+          onClick={() => navigate('/review')}
+          className={`flex items-center gap-1.5 text-sm mb-4 transition-colors cursor-pointer ${
+            isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-400 hover:text-slate-700'
+          }`}
+        >
+          ← Review Hub
+        </button>
         <div className="flex items-center gap-3 mb-1">
           <span className="text-3xl">📅</span>
           <div>
             <h1 className={`text-2xl font-bold ${textMain}`}>Weekly Planner</h1>
-            <p className={`text-sm italic ${textMuted}`}>Keep important things important</p>
+            <p className={`text-sm italic ${textMuted}`}>Ưu tiên việc quan trọng</p>
           </div>
         </div>
       </div>
@@ -95,7 +100,7 @@ export default function WeeklyPlannerPage({
         <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border ${isDark ? 'bg-slate-800/60 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
           <button
             onClick={goToPrevWeek}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
           >‹</button>
           <div className="flex items-center gap-2">
             <span className="text-sm">📆</span>
@@ -110,14 +115,14 @@ export default function WeeklyPlannerPage({
           </div>
           <button
             onClick={goToNextWeek}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${isDark ? 'hover:bg-slate-700 text-slate-400' : 'hover:bg-slate-100 text-slate-600'}`}
           >›</button>
         </div>
 
         {!isCurrent && (
           <button
             onClick={goToCurrentWeek}
-            className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors ${isDark
+            className={`px-3 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer ${isDark
               ? 'border-slate-700 text-slate-400 hover:border-indigo-500 hover:text-indigo-400'
               : 'border-slate-200 text-slate-500 hover:border-indigo-400 hover:text-indigo-600'
             }`}
@@ -150,11 +155,8 @@ export default function WeeklyPlannerPage({
         </span>
       </div>
 
-      {/* ── Two-column layout on desktop ── */}
-      <div className="flex flex-col xl:flex-row gap-5">
-
-        {/* ── Main Table ── */}
-        <div className="flex-1 min-w-0">
+      {/* ── Main Table ── */}
+      <div className="min-w-0">
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="text-center">
@@ -171,14 +173,8 @@ export default function WeeklyPlannerPage({
                   <thead>
                     <tr className={`border-b ${borderColor} ${headerBg}`}>
                       <th className={`w-8 px-2 py-3 border-r ${borderColor}`}></th>
-                      <th className={`px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide border-r ${borderColor} w-32 ${textMuted}`}>
-                        Vai trò
-                      </th>
                       <th className={`px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide border-r ${borderColor} w-48 ${textMuted}`}>
                         Mục tiêu tuần
-                      </th>
-                      <th className={`px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide border-r ${borderColor} w-36`} style={{ color: '#f59e0b' }}>
-                        Ghi chú
                       </th>
                       {dayDates.map((date, i) => {
                         const todayHighlight = isToday(date)
@@ -229,28 +225,17 @@ export default function WeeklyPlannerPage({
               <div className={`px-4 py-3 border-t ${borderColor} ${isDark ? 'bg-slate-800/40' : 'bg-slate-50'}`}>
                 <button
                   onClick={() => addRole(currentWeekStart)}
-                  className={`flex items-center gap-2 text-sm font-medium transition-colors ${isDark
+                  className={`flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer ${isDark
                     ? 'text-slate-400 hover:text-indigo-400'
                     : 'text-slate-500 hover:text-indigo-600'
                   }`}
                 >
                   <span className="text-lg">+</span>
-                  Thêm vai trò
+                  Thêm hàng
                 </button>
               </div>
             </div>
           )}
-        </div>
-
-        {/* ── Weekly Reflection Sidebar ── */}
-        <div className="xl:w-80 xl:shrink-0">
-          <WeeklyReflection
-            weekStart={currentWeekStart}
-            reflection={reflection}
-            onSave={(key, value) => saveReflection(currentWeekStart, key, value)}
-            isDark={isDark}
-          />
-        </div>
       </div>
 
       <div className="h-8" />
