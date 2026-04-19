@@ -18,12 +18,10 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
     const debounceRef = useRef(null)
     const isLoadingRef = useRef(false)
     const currentMkRef = useRef(null)           // tracks current month key
-    const initialSnapDoneRef = useRef(false)    // one-time Supabase initial load flag
     const snapshotsHookRef = useRef(snapshotsHook) // always points to latest hook
     useEffect(() => { snapshotsHookRef.current = snapshotsHook }, [snapshotsHook])
 
-    const loadMonth = useCallback((mk) => {
-        const hook = snapshotsHookRef.current
+    const loadMonth = useCallback((mk, hook) => {
         const snap = hook?.getSnapshotByMonth?.(mk)
         const newScores = snap ? { ...snap.scores } : { ...DEFAULT_SCORES }
         isLoadingRef.current = true
@@ -32,30 +30,17 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
         setTimeout(() => { isLoadingRef.current = false }, 150)
     }, [onScoresChange])
 
-    // Effect 1: fires when user switches month/year
+    // Single unified effect: fires on month/year change AND when snapshots arrive/change
+    // Directly uses snapshotsHook prop (not ref) so we always have fresh getSnapshotByMonth
     useEffect(() => {
         const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
         currentMkRef.current = mk
-        loadMonth(mk)
-    }, [selectedYear, selectedMonth, loadMonth]) // loadMonth is stable (useCallback)
 
-    // Effect 2: reload when Supabase snapshots first arrive (empty → populated)
-    // Also fires if a save updates the snapshots array, which is fine — isLoadingRef guards debounce
-    useEffect(() => {
-        if (!snapshotsHook?.snapshots?.length) {
-            // snapshots cleared (logout / re-login) → reset flag so next load works
-            initialSnapDoneRef.current = false
-            return
-        }
-        if (initialSnapDoneRef.current) {
-            // After first load: only reload if not in the middle of a save
-            if (isLoadingRef.current) return
-        }
-        initialSnapDoneRef.current = true
-        const mk = currentMkRef.current
-        if (!mk) return
-        loadMonth(mk)
-    }, [snapshotsHook?.snapshots, loadMonth])
+        // Skip reload if we're in the middle of saving (debounce)
+        if (isLoadingRef.current) return
+
+        loadMonth(mk, snapshotsHook)
+    }, [selectedYear, selectedMonth, snapshotsHook?.snapshots, loadMonth, snapshotsHook])
 
     const handleScoreChange = useCallback((areaId, value) => {
         const newScores = { ...scores, [areaId]: Number(value) }
