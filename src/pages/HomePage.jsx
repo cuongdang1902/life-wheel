@@ -20,35 +20,50 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
     const currentMkRef = useRef(null)            // tracks current month key
     const snapshotsHookRef = useRef(snapshotsHook) // always points to latest hook (for use in timeouts)
     useEffect(() => { snapshotsHookRef.current = snapshotsHook }, [snapshotsHook])
+    const pendingSaveRef = useRef(null) // { scores, year, month } — pending debounce data
+
+    // Flush any pending save immediately (called before switching months)
+    const flushPendingSave = useCallback(async () => {
+        if (!pendingSaveRef.current) return
+        const { scores: s, year, month } = pendingSaveRef.current
+        pendingSaveRef.current = null
+        clearTimeout(debounceRef.current)
+        debounceRef.current = null
+        await snapshotsHookRef.current?.upsertMonthlySnapshot?.(s, year, month)
+    }, [])
 
     // Single unified effect: sync scores from snapshot whenever month/year or snapshots change
-    // Uses snapshotsHook directly from props (current render) — no stale closure issues
     useEffect(() => {
         const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
+        const prevMk = currentMkRef.current
         currentMkRef.current = mk
 
-        // Don't overwrite user's slider position while a save is in progress
-        if (savingRef.current) {
-            console.log('[HomePage effect] SKIPPED — savingRef is true')
-            return
+        // Flush pending save from previous month before loading new month
+        if (prevMk && prevMk !== mk && pendingSaveRef.current) {
+            flushPendingSave()
         }
 
-        const snapshotCount = snapshotsHook?.snapshots?.length ?? 0
+        // Don't overwrite user's slider position while a save is in progress
+        if (savingRef.current) return
+
         const snap = snapshotsHook?.getSnapshotByMonth?.(mk)
         const newScores = snap ? { ...snap.scores } : { ...DEFAULT_SCORES }
-        console.log(`[HomePage effect] mk=${mk}, snapshots.length=${snapshotCount}, snap=`, snap, 'scores=', newScores)
         setScores(newScores)
         onScoresChange?.(newScores)
-    }, [selectedYear, selectedMonth, snapshotsHook?.snapshots, onScoresChange])
+    }, [selectedYear, selectedMonth, snapshotsHook?.snapshots, onScoresChange, flushPendingSave])
 
     const handleScoreChange = useCallback((areaId, value) => {
         const newScores = { ...scores, [areaId]: Number(value) }
         setScores(newScores)
         onScoresChange?.(newScores)
 
+        // Track pending save data so it can be flushed on month switch
+        pendingSaveRef.current = { scores: newScores, year: selectedYear, month: selectedMonth }
+
         // Debounced auto-save
         clearTimeout(debounceRef.current)
         debounceRef.current = setTimeout(async () => {
+            pendingSaveRef.current = null  // no longer pending
             savingRef.current = true  // block effect from overwriting scores during save
             await snapshotsHookRef.current?.upsertMonthlySnapshot?.(newScores, selectedYear, selectedMonth)
             setSavedIndicator(true)
