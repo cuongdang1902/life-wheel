@@ -63,6 +63,7 @@ export default function useSnapshots() {
   // Clear trước khi load để đảm bảo cycle empty→populated luôn xảy ra
   // (giúp HomePage detect re-login và reload điểm đúng)
   useEffect(() => {
+    console.log('[useSnapshots] userId changed:', userId, '→ clearing snapshots')
     setSnapshots([])
     if (userId) {
       loadFromSupabase(userId)
@@ -85,13 +86,15 @@ export default function useSnapshots() {
     if (error) {
       console.error('Error loading snapshots from Supabase:', error.message)
     } else {
-      setSnapshots(data.map(s => ({
+      const mapped = data.map(s => ({
         id: s.id,
         date: s.created_at,
         period: s.period,
         scores: s.scores,
         monthKey: s.period === 'month' ? isoToMonthKey(s.created_at) : null,
-      })))
+      }))
+      console.log('[useSnapshots] loadFromSupabase done, count:', mapped.length, 'monthKeys:', mapped.map(s => s.monthKey))
+      setSnapshots(mapped)
     }
   }
 

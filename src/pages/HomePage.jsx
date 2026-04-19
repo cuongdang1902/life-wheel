@@ -28,10 +28,15 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
         currentMkRef.current = mk
 
         // Don't overwrite user's slider position while a save is in progress
-        if (savingRef.current) return
+        if (savingRef.current) {
+            console.log('[HomePage effect] SKIPPED — savingRef is true')
+            return
+        }
 
+        const snapshotCount = snapshotsHook?.snapshots?.length ?? 0
         const snap = snapshotsHook?.getSnapshotByMonth?.(mk)
         const newScores = snap ? { ...snap.scores } : { ...DEFAULT_SCORES }
+        console.log(`[HomePage effect] mk=${mk}, snapshots.length=${snapshotCount}, snap=`, snap, 'scores=', newScores)
         setScores(newScores)
         onScoresChange?.(newScores)
     }, [selectedYear, selectedMonth, snapshotsHook?.snapshots, onScoresChange])
