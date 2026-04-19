@@ -42,7 +42,11 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
     // Effect 2: reload when Supabase snapshots first arrive (empty → populated)
     // Also fires if a save updates the snapshots array, which is fine — isLoadingRef guards debounce
     useEffect(() => {
-        if (!snapshotsHook?.snapshots?.length) return
+        if (!snapshotsHook?.snapshots?.length) {
+            // snapshots cleared (logout / re-login) → reset flag so next load works
+            initialSnapDoneRef.current = false
+            return
+        }
         if (initialSnapDoneRef.current) {
             // After first load: only reload if not in the middle of a save
             if (isLoadingRef.current) return

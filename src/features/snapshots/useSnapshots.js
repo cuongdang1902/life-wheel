@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../../shared/lib/supabase'
 
 const STORAGE_KEY = 'life-wheel-snapshots'
@@ -40,6 +40,7 @@ function isoToMonthKey(isoString) {
 export default function useSnapshots() {
   const [snapshots, setSnapshots] = useState([])
   const [userId, setUserId] = useState(null)
+  const upsertingRef = useRef(new Set()) // track in-flight upserts per monthKey to prevent duplicates
 
   // Theo dõi trạng thái đăng nhập
   useEffect(() => {
@@ -59,7 +60,10 @@ export default function useSnapshots() {
   }, [])
 
   // Load snapshots theo trạng thái đăng nhập
+  // Clear trước khi load để đảm bảo cycle empty→populated luôn xảy ra
+  // (giúp HomePage detect re-login và reload điểm đúng)
   useEffect(() => {
+    setSnapshots([])
     if (userId) {
       loadFromSupabase(userId)
     } else {
@@ -173,49 +177,79 @@ export default function useSnapshots() {
   }, [snapshots])
 
   // Upsert: update if exists for this monthKey, otherwise insert
+  // Queries Supabase directly to avoid stale-closure duplicate-insert bug
   const upsertMonthlySnapshot = useCallback(async (scores, year, month) => {
     const mk = `${year}-${String(month).padStart(2, '0')}`
     const targetDate = `${year}-${String(month).padStart(2, '0')}-15T12:00:00.000Z`
 
-    // Find existing by monthKey
-    const existing = snapshots.find(s => {
-      if (s.monthKey === mk && s.period === 'month') return true
-      if (s.period === 'month' && !s.monthKey && isoToMonthKey(s.date) === mk) return true
-      return false
-    })
+    if (userId) {
+      // Lock: nếu đang upsert tháng này rồi thì bỏ qua (debounce xử lý call cuối)
+      if (upsertingRef.current.has(mk)) return null
+      upsertingRef.current.add(mk)
 
-    if (existing) {
-      // UPDATE — avoid .select().single() which causes 406 errors with RLS
-      if (userId) {
-        const { error } = await supabase
+      try {
+        // Query DB trực tiếp — không dùng local state để tránh race condition
+        const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01T00:00:00.000Z`
+        const nextYear = month === 12 ? year + 1 : year
+        const nextMonth = month === 12 ? 1 : month + 1
+        const startOfNextMonth = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01T00:00:00.000Z`
+
+        const { data: rows, error: findError } = await supabase
           .from('snapshots')
-          .update({ scores })
-          .eq('id', existing.id)
+          .select('id, created_at, period, scores')
           .eq('user_id', userId)
-        if (error) { console.error('Error updating monthly snapshot:', error.message); return null }
-        // Construct updated object from local data (no .select() needed)
-        const updated = { id: existing.id, date: existing.date, period: 'month', scores: { ...scores }, monthKey: mk }
-        setSnapshots(prev => prev.map(s => s.id === existing.id ? updated : s))
-        return updated
-      } else {
+          .eq('period', 'month')
+          .gte('created_at', startOfMonth)
+          .lt('created_at', startOfNextMonth)
+          .order('created_at', { ascending: false })
+          .limit(1)
+
+        if (findError) {
+          console.error('Error finding monthly snapshot:', findError.message)
+          return null
+        }
+
+        const existingRow = rows?.[0]
+
+        if (existingRow) {
+          // UPDATE
+          const { error } = await supabase
+            .from('snapshots')
+            .update({ scores })
+            .eq('id', existingRow.id)
+            .eq('user_id', userId)
+          if (error) { console.error('Error updating monthly snapshot:', error.message); return null }
+          const updated = { id: existingRow.id, date: existingRow.created_at, period: 'month', scores: { ...scores }, monthKey: mk }
+          setSnapshots(prev => prev.map(s => s.id === existingRow.id ? updated : s))
+          return updated
+        } else {
+          // INSERT
+          const { data, error } = await supabase
+            .from('snapshots')
+            .insert([{ user_id: userId, scores, period: 'month', created_at: targetDate }])
+            .select()
+          if (error) { console.error('Error inserting monthly snapshot:', error.message); return null }
+          const row = data?.[0]
+          if (!row) { console.error('Error: insert returned no data'); return null }
+          const newSnapshot = { id: row.id, date: row.created_at, period: row.period, scores: row.scores, monthKey: mk }
+          setSnapshots(prev => [newSnapshot, ...prev])
+          return newSnapshot
+        }
+      } finally {
+        upsertingRef.current.delete(mk)
+      }
+    } else {
+      // Offline: dùng local state (không có race condition vì là synchronous)
+      const existing = snapshots.find(s => {
+        if (s.monthKey === mk && s.period === 'month') return true
+        if (s.period === 'month' && !s.monthKey && isoToMonthKey(s.date) === mk) return true
+        return false
+      })
+      if (existing) {
         const updated = { ...existing, scores: { ...scores }, monthKey: mk }
         const newList = snapshots.map(s => s.id === existing.id ? updated : s)
         saveToLocalStorage(newList)
         return updated
-      }
-    } else {
-      // INSERT
-      if (userId) {
-        const { data, error } = await supabase
-          .from('snapshots')
-          .insert([{ user_id: userId, scores, period: 'month', created_at: targetDate }])
-          .select()
-        if (error) { console.error('Error inserting monthly snapshot:', error.message); return null }
-        const row = data?.[0]
-        if (!row) { console.error('Error: insert returned no data'); return null }
-        const newSnapshot = { id: row.id, date: row.created_at, period: row.period, scores: row.scores, monthKey: mk }
-        setSnapshots(prev => [newSnapshot, ...prev])
-        return newSnapshot
       } else {
         const newSnapshot = {
           id: Date.now().toString(),
