@@ -18,13 +18,16 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
     const currentMkRef = useRef(null)            // tracks current month key
     const snapshotsHookRef = useRef(snapshotsHook)
     useEffect(() => { snapshotsHookRef.current = snapshotsHook }, [snapshotsHook])
+    const [debugInfo, setDebugInfo] = useState('')
 
     // Effect: sync scores from snapshot whenever month/year changes or snapshots data arrives
     useEffect(() => {
         const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
         currentMkRef.current = mk
+        const snapCount = snapshotsHook?.snapshots?.length ?? 0
         const snap = snapshotsHook?.getSnapshotByMonth?.(mk)
         const newScores = snap ? { ...snap.scores } : { ...DEFAULT_SCORES }
+        setDebugInfo(`mk=${mk} | snapshots=${snapCount} | snap=${snap ? 'FOUND' : 'NULL'} | health=${newScores.health}`)
         setScores(newScores)
         onScoresChange?.(newScores)
     }, [selectedYear, selectedMonth, snapshotsHook?.snapshots, onScoresChange])
@@ -45,6 +48,10 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
 
     return (
         <div className="w-full">
+            {/* DEBUG - remove after fixing */}
+            <div style={{background:'#ff0',color:'#000',padding:'8px',fontSize:'12px',fontFamily:'monospace',marginBottom:'8px'}}>
+                DEBUG: {debugInfo}
+            </div>
             {/* Month/Year Selector */}
             <div className={`mb-5 px-5 py-3 rounded-2xl border flex flex-wrap items-center gap-3 ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
                 <span className={`text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>Chấm điểm cho</span>
