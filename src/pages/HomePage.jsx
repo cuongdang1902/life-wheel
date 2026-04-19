@@ -16,7 +16,6 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
     const [scores, setScores] = useState(DEFAULT_SCORES)
     const [savedIndicator, setSavedIndicator] = useState(false)
     const debounceRef = useRef(null)
-    const savingRef = useRef(false)              // true ONLY during user-initiated save
     const currentMkRef = useRef(null)            // tracks current month key
     const snapshotsHookRef = useRef(snapshotsHook) // always points to latest hook (for use in timeouts)
     useEffect(() => { snapshotsHookRef.current = snapshotsHook }, [snapshotsHook])
@@ -32,7 +31,7 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
         await snapshotsHookRef.current?.upsertMonthlySnapshot?.(s, year, month)
     }, [])
 
-    // Single unified effect: sync scores from snapshot whenever month/year or snapshots change
+    // Effect: sync scores from snapshot whenever month/year changes or snapshots data arrives
     useEffect(() => {
         const mk = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
         const prevMk = currentMkRef.current
@@ -42,9 +41,6 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
         if (prevMk && prevMk !== mk && pendingSaveRef.current) {
             flushPendingSave()
         }
-
-        // Don't overwrite user's slider position while a save is in progress
-        if (savingRef.current) return
 
         const snap = snapshotsHook?.getSnapshotByMonth?.(mk)
         const newScores = snap ? { ...snap.scores } : { ...DEFAULT_SCORES }
@@ -64,10 +60,9 @@ export default function HomePage({ snapshotsHook, onScoresChange, onExport, isDa
         clearTimeout(debounceRef.current)
         debounceRef.current = setTimeout(async () => {
             pendingSaveRef.current = null  // no longer pending
-            savingRef.current = true  // block effect from overwriting scores during save
             await snapshotsHookRef.current?.upsertMonthlySnapshot?.(newScores, selectedYear, selectedMonth)
             setSavedIndicator(true)
-            setTimeout(() => { savingRef.current = false; setSavedIndicator(false) }, 1500)
+            setTimeout(() => setSavedIndicator(false), 1500)
         }, 800)
     }, [scores, selectedYear, selectedMonth, onScoresChange])
 
